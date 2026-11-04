@@ -3,329 +3,96 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Turnero de talleres</title>
+<title>TurnoTaller | Turnos online para talleres mecánicos y de chapa y pintura</title>
+<meta name="description" content="TurnoTaller es el sistema de turnos online para talleres mecánicos y de chapa y pintura. Tus clientes eligen día y hora libres desde el celular y vos ves todo en tu panel.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_AR">
+<meta property="og:site_name" content="TurnoTaller">
+<meta property="og:title" content="TurnoTaller | Turnos online para tu taller">
+<meta property="og:description" content="Tus clientes eligen día y hora libres desde el celular. Vos ves todos los turnos en tu panel y te enterás apenas entra uno nuevo.">
+<meta property="og:url" content="https://finick01.github.io/Turnos_de_Talleres/">
+<meta property="og:image" content="https://finick01.github.io/Turnos_de_Talleres/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"TurnoTaller","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"Sistema de turnos online para talleres mecánicos y de chapa y pintura."}</script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#eceae4;--card:#fbfaf7;--ink:#1d2125;--mute:#5c646b;--line:#cfccc3;--acc:#f0b400;--acc-ink:#1d2125;--ok:#1f7a4d;--bad:#b3392b;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181b;--card:#1f2327;--ink:#eceae4;--mute:#9aa2a9;--line:#343a40;--ok:#4cc58a;--bad:#ef7a6c;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#15181b;--card:#1f2327;--ink:#eceae4;--mute:#9aa2a9;--line:#343a40;--ok:#4cc58a;--bad:#ef7a6c;color-scheme:dark}
+:root{--bg:#eceae4;--card:#fbfaf7;--ink:#1d2125;--mute:#5c646b;--line:#cfccc3;--acc:#f0b400;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#15181b;--card:#1f2327;--ink:#eceae4;--mute:#9aa2a9;--line:#343a40;color-scheme:dark}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,-apple-system,Segoe UI,sans-serif}
-.wrap{max-width:860px;margin:0 auto;padding:20px 16px 48px}
-h1,h2{font-family:"Barlow Condensed",Arial Narrow,sans-serif;margin:0;letter-spacing:.2px}
-h1{font-size:clamp(34px,7vw,52px);line-height:1}
-h2{font-size:24px;margin-bottom:10px}
-.sub{color:var(--mute);margin:6px 0 18px}
-.stripe{height:10px;margin:0 0 16px;background:repeating-linear-gradient(-45deg,var(--acc) 0 14px,var(--ink) 14px 28px);border-radius:2px}
-.tabs{display:flex;gap:8px;margin-bottom:14px}
-.tab{flex:1;padding:12px;border:2px solid var(--ink);background:transparent;color:var(--ink);font:600 16px Barlow,sans-serif;border-radius:8px;cursor:pointer}
-.tab[aria-selected="true"]{background:var(--ink);color:var(--bg)}
-.tab.mini{padding:8px;font-size:15px}
-.bar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
-.bar label{margin:0}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:9px 12px;font:500 15px Barlow,sans-serif;cursor:pointer;text-align:left}
-.chip small{display:block;color:var(--mute);font-weight:400}
-.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--acc);color:var(--acc-ink)}
-.chip[aria-pressed="true"] small{color:var(--acc-ink)}
-.chip:disabled{opacity:.4;cursor:not-allowed;text-decoration:line-through}
-.svc{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
-label{display:block;font-weight:600;margin:12px 0 4px}
-input[type=text],input:not([type]),input[type=tel],textarea,select{width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
-select{width:auto}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media (max-width:560px){.row{grid-template-columns:1fr}}
-.btn{margin-top:16px;padding:13px 20px;border:0;border-radius:8px;background:var(--acc);color:var(--acc-ink);font:700 18px "Barlow Condensed",sans-serif;cursor:pointer}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 Barlow,system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:880px;margin:0 auto;padding:20px 16px 48px}
+h1,h2,h3{font-family:"Barlow Condensed",Arial Narrow,sans-serif;margin:0;line-height:1.05}
+h1{font-size:clamp(40px,9vw,68px)}
+h2{font-size:clamp(28px,5vw,36px);margin:44px 0 14px}
+h3{font-size:22px;margin-bottom:4px}
+.stripe{height:10px;background:repeating-linear-gradient(-45deg,var(--acc) 0 14px,var(--ink) 14px 28px);border-radius:2px;margin-bottom:28px}
+.brand{font:700 22px "Barlow Condensed",sans-serif;margin-bottom:28px}
+.lead{font-size:20px;color:var(--mute);max-width:640px;margin:16px 0 24px}
+.cta{display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-block;padding:14px 22px;border-radius:8px;background:var(--acc);color:#1d2125;font:700 20px "Barlow Condensed",sans-serif;text-decoration:none}
 .btn.sec{background:transparent;border:2px solid var(--ink);color:var(--ink)}
-.btn.sm{margin:0;padding:8px 14px;font-size:16px}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.sel{background:var(--ink);color:var(--bg);border-radius:8px;padding:12px 14px;margin-top:14px}
-.ok{border-left:6px solid var(--ok)}
-.warn{border-left:6px solid var(--bad)}
-.t{display:grid;grid-template-columns:64px 1fr auto;gap:12px;padding:12px 0;border-top:1px solid var(--line);align-items:start}
-.t:first-child{border-top:0}
-.rw{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line)}
-.rw:first-of-type{border-top:0}
-.ck{display:flex;gap:8px;align-items:center;margin:0;font-weight:500;flex:1;min-width:200px}
-.ck input{width:20px;height:20px}
-.dys{display:flex;flex-wrap:wrap;gap:6px 16px}
-.dys .ck{flex:none;min-width:0}
-.hr{font:700 24px "Barlow Condensed",sans-serif}
-.who{color:var(--mute);font-size:14px}
-.x{background:none;border:0;color:var(--bad);cursor:pointer;font:600 14px Barlow,sans-serif}
-.tag{display:inline-block;background:var(--acc);color:var(--acc-ink);border-radius:5px;padding:1px 8px;font-size:13px;font-weight:600}
-.tag.off{background:var(--bad);color:#fff}
-pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px dashed var(--mute);border-radius:8px;padding:14px;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;margin:0}
-.empty{color:var(--mute);padding:8px 0}
-.demo{font-size:13px;color:var(--mute);margin-top:24px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;padding:0;margin:0;list-style:none;counter-reset:s}
+.steps li{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;counter-increment:s}
+.steps li::before{content:counter(s);display:inline-block;background:var(--acc);color:#1d2125;font:700 20px "Barlow Condensed",sans-serif;border-radius:6px;padding:0 10px;margin-bottom:8px}
+.steps p{margin:0;color:var(--mute);font-size:16px}
+ul.chk{padding:0;margin:0;list-style:none}
+ul.chk li{padding:9px 0 9px 30px;border-top:1px solid var(--line);position:relative}
+ul.chk li:first-child{border-top:0}
+ul.chk li::before{content:"✓";position:absolute;left:4px;font-weight:700}
+.soon{display:inline-block;background:var(--ink);color:var(--bg);border-radius:5px;padding:0 8px;font-size:13px;font-weight:600;margin-left:6px}
+details{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:8px}
+summary{cursor:pointer;font-weight:600}
+details p{margin:8px 0 0;color:var(--mute)}
+footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--mute);font-size:15px}
+footer a{color:var(--ink)}
 :focus-visible{outline:3px solid var(--acc);outline-offset:2px}
-.hide{display:none}
 </style>
-<style>.lnk{word-break:break-all;font-size:14px;color:var(--mute)}.foot{margin-top:24px;font-size:14px}.foot a{color:var(--ink)}input[type=password],input[type=email]{width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}</style>
 </head>
 <body>
 <div class="wrap">
   <div class="stripe"></div>
-  <h1 id="ttl">Turnero de talleres</h1>
-  <p class="sub" id="sub"></p>
-  <div class="empty" id="msg" role="alert"></div>
+  <div class="brand">TurnoTaller</div>
+  <header>
+    <h1>Turnos online para tu taller</h1>
+    <p class="lead">Tus clientes sacan turno desde el celular, eligiendo entre los días y horarios que vos tenés libres. Sin llamadas, sin mensajes perdidos y sin turnos superpuestos.</p>
+    <div class="cta"><a class="btn" href="demo.html">Ver cómo funciona</a><a class="btn sec" href="app.html">Ingresar a mi taller</a></div>
+  </header>
 
-  <section id="login" class="hide">
-    <div class="card" id="lg"><h2>Ingresar</h2>
-      <label for="le">Mail</label><input id="le" type="email" autocomplete="username">
-      <label for="lp">Contraseña</label><input id="lp" type="password" autocomplete="current-password">
-      <label class="ck" style="margin-top:8px;font-size:15px"><input type="checkbox" data-show="lp"> Mostrar contraseña</label>
-      <button class="btn" id="lgo">Ingresar</button></div>
-    <div class="card hide" id="su"><h2>Crear la cuenta de administrador</h2>
-      <p class="sub" style="margin-top:0">Es la primera vez que se abre el sistema. Esta cuenta controla quién usa el servicio.</p>
-      <label for="se">Mail</label><input id="se" type="email" autocomplete="username">
-      <label for="sp">Contraseña (mínimo 8 caracteres)</label><input id="sp" type="password" autocomplete="new-password">
-      <label class="ck" style="margin-top:8px;font-size:15px"><input type="checkbox" data-show="sp,sq"> Mostrar contraseña</label>
-      <label for="sq">Repetir contraseña</label><input id="sq" type="password" autocomplete="new-password">
-      <button class="btn" id="sgo">Crear administrador</button></div>
-  </section>
+  <main>
+    <h2>Cómo funciona</h2>
+    <ol class="steps">
+      <li><h3>Configurás tu taller</h3><p>Elegís qué trabajos hacés, cuánto dura cada uno, tus días y horarios, y cuántos autos podés atender a la vez.</p></li>
+      <li><h3>Compartís tu link</h3><p>Lo mandás por WhatsApp o lo imprimís en un cartel para el taller.</p></li>
+      <li><h3>Tus clientes eligen</h3><p>Ven solo lo que hacés y los horarios realmente libres. No tienen que registrarse.</p></li>
+      <li><h3>Vos lo ves todo</h3><p>Cada turno nuevo aparece solo en tu panel, con un aviso en pantalla.</p></li>
+    </ol>
 
-  <section id="cli" class="hide">
-    <div class="card warn hide" id="off1"><h2>Este taller no está tomando turnos</h2><p style="margin:0">Probá más tarde o comunicate directamente con el taller.</p></div>
-    <div id="cbody">
-      <div class="card"><h2>1. ¿Qué necesitás?</h2><div class="svc" id="svc"></div></div>
-      <div class="card"><h2>2. Elegí el día</h2><div class="chips" id="days"></div><div class="empty" id="dnote">Primero elegí qué necesitás.</div></div>
-      <div class="card"><h2>3. Elegí la hora</h2><div class="chips" id="hours"></div><div class="empty" id="hnote">Primero elegí un día.</div></div>
-      <div class="card"><h2>4. Tus datos</h2>
-        <div class="row"><div><label for="nm">Nombre y apellido</label><input id="nm" autocomplete="name" maxlength="100"></div><div><label for="tel">Teléfono</label><input id="tel" type="tel" autocomplete="tel" maxlength="40"></div></div>
-        <label for="car">Vehículo y patente</label><input id="car" placeholder="Ej: Fiat Cronos AB123CD" maxlength="100">
-        <label for="note">¿Qué le pasa al vehículo? (opcional)</label><textarea id="note" rows="3" maxlength="500"></textarea>
-        <div class="sel hide" id="resumen"></div>
-        <button class="btn" id="go" disabled>Confirmar turno</button>
-        <div class="empty" id="err" role="alert"></div>
-      </div>
-    </div>
-    <div class="card ok hide" id="done"></div>
-    <p class="foot"><a href="./">¿Sos un taller? Ingresá acá</a></p>
-  </section>
+    <h2>Qué incluye</h2>
+    <ul class="chk">
+      <li>Un link propio para los clientes de tu taller</li>
+      <li>Solo se ofrecen los trabajos que hacés, con la duración que vos definís</li>
+      <li>Un mismo horario no se puede reservar dos veces</li>
+      <li>Aviso en pantalla cuando entra un turno nuevo</li>
+      <li>Resumen de los turnos de mañana, listo para copiar</li>
+      <li>Cancelás turnos desde tu panel</li>
+      <li>Funciona en el celular y en la computadora, sin instalar nada</li>
+      <li>Resumen diario por mail <span class="soon">Próximamente</span></li>
+    </ul>
 
-  <section id="tal" class="hide">
-    <div class="card ok hide" id="nuevo" role="status" aria-live="polite"></div>
-    <div class="tabs"><button class="tab mini" id="s1">Turnos</button><button class="tab mini" id="s2">Configuración</button><button class="tab mini" id="out1">Salir</button></div>
-    <div id="tur">
-      <div class="card"><h2>Turnos por día</h2><div class="chips" id="pdays"></div></div>
-      <div class="card"><h2 id="ptitle">Turnos</h2><div id="plist"></div></div>
-      <div class="card"><h2>Resumen para mañana</h2><p class="sub" id="mailsub" style="margin-top:0"></p><pre id="mail"></pre>
-        <button class="btn sec" id="copy">Copiar resumen</button> <span id="cok" class="who"></span></div>
-    </div>
-    <div id="cfg">
-      <div class="card"><h2>Link para tus clientes</h2><p class="sub" style="margin-top:0">Compartilo por WhatsApp o ponelo en el taller.</p><div class="lnk" id="mylink"></div><button class="btn sec" id="copylink">Copiar link</button> <span id="clok" class="who"></span></div>
-      <p class="sub" style="margin-top:0">Los clientes solo ven lo que marques acá. Los cambios se guardan solos y no modifican los turnos ya tomados. <strong id="cfgok"></strong></p>
-      <div id="tcfg"></div>
-    </div>
-  </section>
+    <h2>Para quién es</h2>
+    <p>Para talleres mecánicos, talleres de chapa y pintura, y talleres que hacen las dos cosas. Cada taller define lo que puede hacer, así los clientes no piden trabajos que no se realizan.</p>
 
-  <section id="adm" class="hide">
-    <div class="tabs"><button class="tab mini" id="out2">Salir</button></div>
-    <div class="card"><h2>Talleres</h2><p class="sub" id="astat" style="margin-top:0"></p><div id="alist"></div></div>
-    <div class="card"><h2>Agregar un taller</h2>
-      <label for="an">Nombre del taller</label><input id="an" maxlength="100">
-      <label for="ae">Mail del taller (con este ingresa)</label><input id="ae" type="email">
-      <label for="ap">Contraseña inicial (mínimo 8 caracteres)</label><input id="ap" type="text" autocomplete="off">
-      <button class="btn" id="ago">Crear taller</button><div class="empty" id="aerr" role="alert"></div></div>
-    <p class="sub">Dar de baja bloquea el ingreso del taller y lo oculta a los clientes. No borra la cuenta ni sus datos, y al dar de alta todo vuelve como estaba.</p>
-  </section>
+    <h2>Preguntas frecuentes</h2>
+    <details><summary>¿Mis clientes tienen que crear una cuenta?</summary><p>No. Solo dejan su nombre, teléfono y los datos del vehículo.</p></details>
+    <details><summary>¿Tengo que instalar algo?</summary><p>No. Funciona desde el navegador del celular o de la computadora.</p></details>
+    <details><summary>¿Puedo elegir qué trabajos hago y cuándo atiendo?</summary><p>Sí. Marcás los trabajos que hacés, cuánto dura cada uno, tus días y horarios, y cuántos autos recibís al mismo tiempo.</p></details>
+    <details><summary>¿Qué pasa si un cliente falta o hay que cancelar?</summary><p>Podés cancelar cualquier turno desde tu panel y ese horario vuelve a quedar libre.</p></details>
+  </main>
+
+  <footer>TurnoTaller · <a href="demo.html">Ver la demo</a> · <a href="app.html">Ingresar</a></footer>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>
-var URL_="https://aeludjdupwueckjohlmq.supabase.co",KEY="sb_publishable_X-X4bBEUJW0BB_TBk9ZZ8Q_uuWHDkUy";
-var sb=supabase.createClient(URL_,KEY);
-var SVC=[{id:"service",n:"Service y mantenimiento",d:"Aceite, filtros, revisión general"},{id:"frenos",n:"Frenos",d:"Pastillas, discos, líquido"},{id:"diag",n:"Diagnóstico",d:"Luces en el tablero, ruidos, fallas"},{id:"alin",n:"Alineación y balanceo",d:"Dirección y neumáticos"},{id:"chapa",n:"Chapa y pintura",d:"Golpes, rayones, pintura"}];
-var DIAS=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
-var S={slug:null,t:null,busy:[],svc:null,day:null,hour:null,me:null,turnos:[],pday:null,sub:1};
-function $(i){return document.getElementById(i)}
-function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
-function key(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
-function fmt(k,o){var p=k.split("-");return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString("es-AR",o||{weekday:"long",day:"numeric",month:"long"})}
-function hh(h){return String(h).padStart(2,"0")+":00"}
-function svcName(id){for(var i=0;i<SVC.length;i++)if(SVC[i].id===id)return SVC[i].n;return id}
-function msg(t,bad){var m=$("msg");m.textContent=t||"";m.style.color=bad?"var(--bad)":"var(--mute)"}
-function show(v){["login","cli","tal","adm"].forEach(function(n){$(n).classList.toggle("hide",n!==v)})}
-function head(a,b){$("ttl").textContent=a;$("sub").textContent=b||""}
-function mk(row){var c=row.config||{};return{name:row.name,active:row.active,svc:c.svc||{},days:c.days||[],open:c.open||8,close:c.close||17,cap:c.cap||1}}
-function ens(t){return SVC.filter(function(s){return t.svc[s.id]})}
-function hrs(t){var o=[];for(var h=t.open;h<t.close;h++)o.push(h);return o}
-function tdays(t){var o=[],d=new Date();d.setHours(12,0,0,0);for(var i=0;i<28&&o.length<10;i++){d.setDate(d.getDate()+1);if(t.days.indexOf(d.getDay())>-1)o.push(key(d))}return o}
-function occ(l,x){return l.filter(function(b){return b.hour<=x&&x<b.hour+b.dur}).length}
-function fits(l,t,h,d){if(h+d>t.close)return false;for(var x=h;x<h+d;x++)if(occ(l,x)>=t.cap)return false;return true}
-function freeHours(t,l,d){return hrs(t).filter(function(h){return fits(l,t,h,d)})}
-function dayOf(arr,k){return arr.filter(function(b){return b.date===k}).sort(function(a,b){return a.hour-b.hour})}
-
-// ---------- Cliente ----------
-async function loadCli(){
-  var a=await sb.rpc("get_taller",{p_slug:S.slug});
-  if(a.error||!a.data||!a.data.length){head("Turnero de talleres","");msg("Este link no corresponde a ningún taller.",1);$("cbody").classList.add("hide");$("off1").classList.add("hide");return}
-  var r=a.data[0];S.t=mk({name:r.name,active:r.active,config:r.config});
-  head(r.name,"Elegí el servicio, el día y la hora que te quede cómoda.");
-  $("off1").classList.toggle("hide",r.active);$("cbody").classList.toggle("hide",!r.active);
-  if(!r.active)return;
-  var d1=new Date();d1.setDate(d1.getDate()+1);var d2=new Date();d2.setDate(d2.getDate()+29);
-  var b=await sb.rpc("get_busy",{p_slug:S.slug,p_from:key(d1),p_to:key(d2)});
-  S.busy=(b.data||[]).map(function(x){return{date:x.date,hour:x.hour,dur:x.dur}});
-  drawCli()}
-function drawCli(){
-  var t=S.t,e=ens(t),d=S.svc?t.svc[S.svc]:0;
-  $("svc").innerHTML=e.length?e.map(function(s){return '<button class="chip" aria-pressed="'+(S.svc===s.id)+'" data-s="'+s.id+'">'+esc(s.n)+'<small>'+esc(s.d)+' · dura aprox. '+t.svc[s.id]+' h</small></button>'}).join(""):'<div class="empty">Este taller todavía no cargó sus servicios.</div>';
-  $("dnote").classList.toggle("hide",!!S.svc);
-  $("days").innerHTML=S.svc?tdays(t).map(function(k){var n=freeHours(t,dayOf(S.busy,k),d).length;return '<button class="chip" '+(n?'':'disabled ')+'aria-pressed="'+(S.day===k)+'" data-d="'+k+'">'+esc(fmt(k,{weekday:"short",day:"numeric",month:"short"}))+'<small>'+(n?n+" horarios libres":"Completo")+'</small></button>'}).join(""):"";
-  $("hnote").classList.toggle("hide",!!S.day);
-  $("hours").innerHTML=S.day&&S.svc?freeHours(t,dayOf(S.busy,S.day),d).map(function(h){return '<button class="chip" aria-pressed="'+(S.hour===h)+'" data-h="'+h+'">'+hh(h)+'</button>'}).join(""):"";
-  var r=$("resumen"),ok=S.svc&&S.day&&S.hour!=null;
-  if(ok){r.classList.remove("hide");r.innerHTML="<strong>"+esc(svcName(S.svc))+"</strong><br>"+esc(fmt(S.day))+", de "+hh(S.hour)+" a "+hh(S.hour+d)}else r.classList.add("hide");
-  $("go").disabled=!ok}
-$("svc").onclick=function(e){var b=e.target.closest("[data-s]");if(!b)return;S.svc=b.dataset.s;S.day=null;S.hour=null;drawCli()};
-$("days").onclick=function(e){var b=e.target.closest("[data-d]");if(!b)return;S.day=b.dataset.d;S.hour=null;drawCli()};
-$("hours").onclick=function(e){var b=e.target.closest("[data-h]");if(!b)return;S.hour=+b.dataset.h;drawCli()};
-$("go").onclick=async function(){
-  var nm=$("nm").value.trim(),tel=$("tel").value.trim(),car=$("car").value.trim(),nt=$("note").value.trim();
-  if(!nm||!tel||!car){$("err").textContent="Completá nombre, teléfono y vehículo para confirmar.";return}
-  var btn=this;btn.disabled=true;$("err").textContent="";
-  var r=await sb.rpc("book",{p_slug:S.slug,p_date:S.day,p_hour:S.hour,p_svc:S.svc,p_name:nm,p_tel:tel,p_car:car,p_note:nt||null});
-  if(r.error){var m=r.error.message||"";var E={horario_ocupado:"Ese horario se ocupó recién. Elegí otro.",taller_no_disponible:"Este taller no está tomando turnos.",limite_por_telefono:"Ya tenés 3 turnos reservados con este teléfono. Si necesitás otro, comunicate con el taller.",telefono_invalido:"Revisá el teléfono: tiene que tener entre 6 y 15 números.",demasiados_turnos:"Hay muchas reservas en este momento. Probá de nuevo en un rato."},k2=Object.keys(E).filter(function(x){return m.indexOf(x)>-1})[0];$("err").textContent=k2?E[k2]:"No se pudo reservar. Probá con otro horario.";S.hour=null;await loadCli();return}
-  var dn=$("done"),dd=S.day,hr=S.hour,sv=S.svc;dn.classList.remove("hide");
-  dn.innerHTML="<h2>Turno confirmado</h2><p style=\"margin:0\">"+esc(nm)+", te esperamos en "+esc(S.t.name)+" el <strong>"+esc(fmt(dd))+" a las "+hh(hr)+"</strong> para "+esc(svcName(sv).toLowerCase())+". Vehículo: "+esc(car)+".</p>";
-  S.svc=null;S.day=null;S.hour=null;["nm","tel","car","note"].forEach(function(i){$(i).value=""});
-  await loadCli();dn.scrollIntoView({behavior:"smooth",block:"center"})};
-
-// ---------- Taller ----------
-async function refreshTal(notify){
-  var d1=new Date();d1.setDate(d1.getDate()+1);var d2=new Date();d2.setDate(d2.getDate()+29);
-  var r=await sb.from("turnos").select("*").gte("date",key(d1)).lte("date",key(d2)).order("date").order("hour");
-  if(r.error||!S.me)return;
-  var old={};S.turnos.forEach(function(b){old[b.id]=1});
-  var nu=(r.data||[]).filter(function(b){return !old[b.id]});
-  S.turnos=r.data||[];
-  if(S.sub===1)drawTur();
-  if(notify&&nu.length)showNew(nu)}
-async function loadTal(){await refreshTal(false);head(S.me.name,"Tu panel de turnos.");drawTal();startRT()}
-function beep(){try{var c=window._ac;if(!c)return;c.resume();var o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=.15;o.start();o.stop(c.currentTime+.3)}catch(e){}}
-document.addEventListener("click",function(){try{window._ac=window._ac||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}});
-function showNew(nu){
-  var n=$("nuevo");n.classList.remove("hide");
-  n.innerHTML="<h2>"+(nu.length===1?"Llegó un turno nuevo":"Llegaron "+nu.length+" turnos nuevos")+"</h2>"+nu.slice(0,3).map(function(b){return "<div>"+esc(fmt(b.date,{weekday:"long",day:"numeric",month:"long"}))+", "+hh(b.hour)+" · "+esc(svcName(b.svc))+" · "+esc(b.name)+" · "+esc(b.car)+"</div>"}).join("")+(nu.length>3?"<div class=\"who\">y "+(nu.length-3)+" más</div>":"")+"<button class=\"btn sec sm\" id=\"nuok\" style=\"margin-top:10px\">Entendido</button>";
-  $("nuok").onclick=function(){n.classList.add("hide");document.title="Turnero de talleres"};
-  document.title="(Nuevo) Turnero de talleres";beep()}
-var RT=null,POLL=null;
-function vis(){if(!document.hidden&&S.me)refreshTal(true)}
-function stopRT(){if(RT){sb.removeChannel(RT);RT=null}clearInterval(POLL);document.removeEventListener("visibilitychange",vis)}
-function startRT(){stopRT();
-  RT=sb.channel("turnos-"+S.me.id).on("postgres_changes",{event:"*",schema:"public",table:"turnos",filter:"taller_id=eq."+S.me.id},function(){refreshTal(true)}).subscribe();
-  POLL=setInterval(function(){refreshTal(true)},30000);
-  document.addEventListener("visibilitychange",vis)}
-function mailText(t,k){
-  var l=dayOf(S.turnos,k);
-  var h="Asunto: Turnos de mañana, "+fmt(k)+" ("+l.length+(l.length===1?" trabajo":" trabajos")+")\n\n";
-  if(!l.length)return h+"No hay turnos cargados para ese día.";
-  return h+l.map(function(b){return hh(b.hour)+" a "+hh(b.hour+b.dur)+"  "+svcName(b.svc)+"\n       "+b.name+" · "+b.tel+"\n       "+b.car+(b.note?"\n       Nota: "+b.note:"")}).join("\n\n")}
-function drawTur(){
-  var t=mk(S.me),ds=tdays(t);
-  if(!ds.length){$("pdays").innerHTML='<div class="empty">Marcá al menos un día de atención en Configuración.</div>';$("plist").innerHTML="";$("mail").textContent="";$("mailsub").textContent="";return}
-  if(ds.indexOf(S.pday)<0)S.pday=ds[0];
-  $("pdays").innerHTML=ds.map(function(k){return '<button class="chip" aria-pressed="'+(S.pday===k)+'" data-d="'+k+'">'+esc(fmt(k,{weekday:"short",day:"numeric",month:"short"}))+'<small>'+dayOf(S.turnos,k).length+' turnos</small></button>'}).join("");
-  var l=dayOf(S.turnos,S.pday);
-  $("ptitle").textContent="Turnos del "+fmt(S.pday);
-  $("plist").innerHTML=l.length?l.map(function(b){return '<div class="t"><div class="hr">'+hh(b.hour)+'</div><div><span class="tag">'+esc(svcName(b.svc))+'</span> <span class="who">'+b.dur+' h</span><div>'+esc(b.name)+' · '+esc(b.tel)+'</div><div class="who">'+esc(b.car)+(b.note?' · '+esc(b.note):'')+'</div></div><button class="x" data-x="'+esc(b.id)+'">Cancelar</button></div>'}).join(""):'<div class="empty">Sin turnos para este día.</div>';
-  $("mail").textContent=mailText(t,ds[0]);
-  $("mailsub").textContent="Turnos del "+fmt(ds[0])+". Cuando tengamos dominio propio, este resumen te va a llegar solo por mail todos los días a las 20:00."}
-$("pdays").onclick=function(e){var b=e.target.closest("[data-d]");if(!b)return;S.pday=b.dataset.d;drawTur()};
-$("plist").onclick=async function(e){var b=e.target.closest("[data-x]");if(!b)return;if(!confirm("¿Cancelar este turno?"))return;var r=await sb.from("turnos").delete().eq("id",b.dataset.x);if(r.error){msg("No se pudo cancelar el turno.",1);return}S.turnos=S.turnos.filter(function(x){return x.id!==b.dataset.x});drawTur()};
-$("copy").onclick=function(){var x=$("mail").textContent;try{navigator.clipboard.writeText(x).then(function(){$("cok").textContent="Copiado"},function(){$("cok").textContent="No se pudo copiar"})}catch(e){$("cok").textContent="No se pudo copiar"}};
-function link(slug){return location.origin+location.pathname+"?t="+slug}
-$("copylink").onclick=function(){try{navigator.clipboard.writeText(link(S.me.slug)).then(function(){$("clok").textContent="Copiado"},function(){$("clok").textContent="No se pudo copiar"})}catch(e){$("clok").textContent="No se pudo copiar"}};
-function opts(a,b,sel,f){var o="";for(var i=a;i<=b;i++)o+='<option value="'+i+'"'+(i===sel?' selected':'')+'>'+f(i)+'</option>';return o}
-function drawCfg(){
-  var t=mk(S.me);$("mylink").textContent=link(S.me.slug);
-  $("tcfg").innerHTML=
-  '<div class="card"><h2>Datos del taller</h2><label for="cn">Nombre</label><input id="cn" maxlength="100" value="'+esc(S.me.name)+'"></div>'+
-  '<div class="card"><h2>Trabajos que hacemos</h2>'+SVC.map(function(s){var on=!!t.svc[s.id];return '<div class="rw"><label class="ck"><input type="checkbox" data-sv="'+s.id+'"'+(on?' checked':'')+'> '+esc(s.n)+'</label><span class="who">Dura aprox.</span><select data-du="'+s.id+'" aria-label="Duración de '+esc(s.n)+'"'+(on?'':' disabled')+'>'+opts(1,4,t.svc[s.id],function(n){return n+" h"})+'</select></div>'}).join("")+'</div>'+
-  '<div class="card"><h2>Días de atención</h2><div class="dys">'+[1,2,3,4,5,6,0].map(function(n){return '<label class="ck"><input type="checkbox" data-dy="'+n+'"'+(t.days.indexOf(n)>-1?' checked':'')+'> '+DIAS[n]+'</label>'}).join("")+'</div>'+(t.days.length?'':'<div class="empty">Sin días marcados, los clientes no van a ver horarios.</div>')+'</div>'+
-  '<div class="card"><h2>Horario y capacidad</h2><div class="chips"><div><label for="op">Abrimos</label><select id="op" data-op="1">'+opts(6,20,t.open,hh)+'</select></div><div><label for="cl">Cerramos</label><select id="cl" data-cl="1">'+opts(7,22,t.close,hh)+'</select></div><div><label for="cp">Autos al mismo tiempo</label><select id="cp" data-cp="1">'+opts(1,5,t.cap,String)+'</select></div></div></div>'}
-async function saveCfg(fields){var r=await sb.from("talleres").update(fields).eq("id",S.me.id);$("cfgok").textContent=r.error?"No se pudo guardar. Probá de nuevo.":"Cambios guardados"}
-$("tcfg").addEventListener("change",async function(e){
-  var c=S.me.config,el=e.target,d=el.dataset;c.svc=c.svc||{};c.days=c.days||[];
-  if(d.sv){if(el.checked)c.svc[d.sv]=c.svc[d.sv]||1;else delete c.svc[d.sv]}
-  else if(d.du)c.svc[d.du]=+el.value;
-  else if(d.dy){var n=+d.dy,i=c.days.indexOf(n);if(el.checked&&i<0)c.days.push(n);if(!el.checked&&i>-1)c.days.splice(i,1);c.days.sort()}
-  else if(d.op){c.open=+el.value;if(c.close<=c.open)c.close=c.open+1}
-  else if(d.cl){c.close=+el.value;if(c.open>=c.close)c.open=c.close-1}
-  else if(d.cp)c.cap=+el.value;
-  else return;
-  drawCfg();await saveCfg({config:c})});
-var nameT;$("tcfg").addEventListener("input",function(e){if(e.target.id!=="cn")return;S.me.name=e.target.value.trim()||"Taller sin nombre";$("ttl").textContent=S.me.name;clearTimeout(nameT);nameT=setTimeout(function(){saveCfg({name:S.me.name})},700)});
-function drawTal(){
-  $("tur").classList.toggle("hide",S.sub!==1);$("cfg").classList.toggle("hide",S.sub!==2);
-  $("s1").setAttribute("aria-selected",S.sub===1);$("s2").setAttribute("aria-selected",S.sub===2);
-  $("cfgok").textContent="";if(S.sub===1)drawTur();else drawCfg()}
-$("s1").onclick=function(){S.sub=1;drawTal()};$("s2").onclick=function(){S.sub=2;drawTal()};
-
-// ---------- Administrador ----------
-async function edge(body){
-  var s=(await sb.auth.getSession()).data.session;
-  var r=await fetch(URL_+"/functions/v1/admin",{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY,Authorization:"Bearer "+(s?s.access_token:KEY)},body:JSON.stringify(body)});
-  var j={};try{j=await r.json()}catch(e){}
-  if(!r.ok)throw new Error(j.error||"error");return j}
-async function loadAdm(){
-  head("Administración","Controlá qué talleres pueden usar el servicio.");
-  var r=await sb.from("talleres").select("*").order("created_at");S.list=r.data||[];drawAdm()}
-function drawAdm(){
-  var n=S.list.filter(function(t){return t.active}).length;
-  $("astat").textContent=S.list.length?n+" de "+S.list.length+" talleres activos":"Todavía no hay talleres. Agregá el primero abajo.";
-  $("alist").innerHTML=S.list.map(function(t){var c=t.config||{};return '<div class="rw"><div><strong>'+esc(t.name)+'</strong><div class="who">'+esc(t.email)+' · '+Object.keys(c.svc||{}).length+' servicios cargados</div><div class="lnk">'+esc(link(t.slug))+'</div></div><span class="tag'+(t.active?'':' off')+'">'+(t.active?'Activo':'Dado de baja')+'</span><button class="btn sec sm" data-a="'+esc(t.id)+'">'+(t.active?'Dar de baja':'Dar de alta')+'</button><button class="btn sec sm" data-p="'+esc(t.id)+'">Cambiar contraseña</button></div>'}).join("")}
-$("alist").onclick=async function(e){
-  var a=e.target.closest("[data-a]"),p=e.target.closest("[data-p]");
-  try{
-    if(a){var t=S.list.filter(function(x){return x.id===a.dataset.a})[0];await edge({action:"set_active",id:t.id,active:!t.active});await loadAdm()}
-    if(p){var pw=prompt("Nueva contraseña para este taller (mínimo 8 caracteres):");if(!pw)return;await edge({action:"set_password",id:p.dataset.p,password:pw});msg("Contraseña cambiada.")}
-  }catch(er){msg("No se pudo completar la acción: "+er.message,1)}};
-$("ago").onclick=async function(){
-  var n=$("an").value.trim(),m=$("ae").value.trim(),p=$("ap").value;$("aerr").textContent="";
-  if(!n||!m||p.length<8){$("aerr").textContent="Completá nombre, mail y una contraseña de al menos 8 caracteres.";return}
-  this.disabled=true;
-  try{var r=await edge({action:"create_taller",name:n,email:m,password:p});["an","ae","ap"].forEach(function(i){$(i).value=""});msg("Taller creado. Pasale al taller su mail, la contraseña inicial y este link: "+link(r.slug));await loadAdm()}
-  catch(er){$("aerr").textContent=er.message==="datos_invalidos"?"Revisá los datos: mail válido y contraseña de 8 caracteres o más.":"No se pudo crear el taller: "+er.message}
-  this.disabled=false};
-
-// ---------- Ingreso ----------
-document.addEventListener("change",function(e){var el=e.target;if(!el.dataset||!el.dataset.show)return;el.dataset.show.split(",").forEach(function(i){$(i).type=el.checked?"text":"password"})});
-async function out(){stopRT();await sb.auth.signOut();S.me=null;S.turnos=[];msg("");await showLogin()}
-$("out1").onclick=out;$("out2").onclick=out;
-async function showLogin(){
-  show("login");head("Turnero de talleres","Ingresá con tu cuenta.");
-  var r=await sb.rpc("needs_setup");var setup=r.data===true;
-  $("su").classList.toggle("hide",!setup);$("lg").classList.toggle("hide",setup)}
-$("lgo").onclick=async function(){
-  var e=$("le").value.trim(),p=$("lp").value;if(!e||!p){msg("Ingresá tu mail y tu contraseña.",1);return}
-  this.disabled=true;msg("");
-  var r=await sb.auth.signInWithPassword({email:e,password:p});this.disabled=false;
-  if(r.error){msg(/banned/i.test(r.error.message)?"Tu cuenta está dada de baja. Comunicate con el administrador.":"Mail o contraseña incorrectos.",1);return}
-  $("lp").value="";await enter()};
-$("sgo").onclick=async function(){
-  var e=$("se").value.trim(),p=$("sp").value,q=$("sq").value;
-  if(!e||p.length<8){msg("Poné un mail y una contraseña de al menos 8 caracteres.",1);return}
-  if(p!==q){msg("Las contraseñas no coinciden.",1);return}
-  this.disabled=true;
-  try{await edge({action:"bootstrap",email:e,password:p});var r=await sb.auth.signInWithPassword({email:e,password:p});if(r.error)throw new Error("login");msg("");await enter()}
-  catch(er){msg("No se pudo crear el administrador.",1);await showLogin()}
-  this.disabled=false};
-async function enter(){
-  var u=(await sb.auth.getUser()).data.user;if(!u){await showLogin();return}
-  var a=await sb.from("admins").select("user_id").maybeSingle();
-  if(a.data){show("adm");await loadAdm();return}
-  var m=await sb.from("talleres").select("*").eq("id",u.id).maybeSingle();
-  if(m.data){S.me=m.data;S.sub=1;show("tal");await loadTal();return}
-  await sb.auth.signOut();await showLogin();msg("Esta cuenta no tiene un taller asociado.",1)}
-(async function(){
-  var q=new URLSearchParams(location.search).get("t");
-  if(q){S.slug=q.toLowerCase();show("cli");await loadCli();return}
-  var s=(await sb.auth.getSession()).data.session;
-  if(s){await enter();return}
-  await showLogin()})();
-</script>
+<script>if(/[?&]t=/.test(location.search))location.replace("app.html"+location.search);</script>
 </body>
 </html>
