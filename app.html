@@ -132,6 +132,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px d
 
   <section id="adm" class="hide">
     <div class="tabs"><button class="tab mini" id="out2">Salir</button></div>
+    <div class="card warn hide" id="aviso" role="status"></div>
     <div class="card"><h2>Talleres</h2><p class="sub" id="astat" style="margin-top:0"></p><div id="alist"></div></div>
     <div class="card"><h2>Agregar un taller</h2>
       <label for="an">Nombre del taller</label><input id="an" maxlength="100">
@@ -310,15 +311,26 @@ async function edge(body){
 async function loadAdm(){
   head("Administración","Controlá qué talleres pueden usar el servicio.");
   var r=await sb.from("talleres").select("*").order("created_at");S.list=r.data||[];drawAdm()}
-function drawAdm(){
+function payDays(t){if(!t.paid_until)return null;return Math.round((Date.parse(t.paid_until)-Date.parse(key(new Date())))/86400000)}
+function payTxt(t){var d=payDays(t);if(d===null)return "Sin fecha de pago cargada";var f=fmt(t.paid_until,{day:"numeric",month:"long",year:"numeric"});return d<0?"Vencido hace "+(-d)+(d===-1?" día":" días")+" (pagado hasta el "+f+")":d===0?"Vence hoy ("+f+")":"Pagado hasta el "+f+" (en "+d+(d===1?" día":" días")+")"}
+function payBox(t){var d=payDays(t),cls=d!==null&&d<0?"tag off":d!==null&&d<=7?"tag":"who",id=esc(t.id);
+  return '<div style="margin-top:6px"><span class="'+cls+'">'+payTxt(t)+'</span></div><div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input type="date" id="pd-'+id+'" aria-label="Pagado hasta" value="'+esc(t.paid_until||"")+'" style="width:auto"><button class="btn sec sm" data-ps="'+id+'">Guardar fecha</button><button class="btn sec sm" data-pm="'+id+'">+1 mes</button></div>'}
+function drawAviso(){
+  var venc=[],pronto=[];S.list.filter(function(t){return t.active}).forEach(function(t){var d=payDays(t);if(d===null)return;if(d<0)venc.push(t.name);else if(d<=7)pronto.push(t.name)});
+  var a=$("aviso");if(!venc.length&&!pronto.length){a.classList.add("hide");return}
+  a.classList.remove("hide");
+  a.innerHTML="<h2>Pagos a revisar</h2>"+(venc.length?"<div><strong>Vencidos:</strong> "+venc.map(esc).join(", ")+"</div>":"")+(pronto.length?"<div><strong>Vencen en 7 días o menos:</strong> "+pronto.map(esc).join(", ")+"</div>":"")}
+function drawAdm(){drawAviso();
   var n=S.list.filter(function(t){return t.active}).length;
   $("astat").textContent=S.list.length?n+" de "+S.list.length+" talleres activos":"Todavía no hay talleres. Agregá el primero abajo.";
-  $("alist").innerHTML=S.list.map(function(t){var c=t.config||{};return '<div class="rw"><div><strong>'+esc(t.name)+'</strong><div class="who">'+esc(t.email)+' · '+Object.keys(c.svc||{}).length+' servicios cargados</div><div class="lnk">'+esc(link(t.slug))+'</div></div><span class="tag'+(t.active?'':' off')+'">'+(t.active?'Activo':'Dado de baja')+'</span><button class="btn sec sm" data-a="'+esc(t.id)+'">'+(t.active?'Dar de baja':'Dar de alta')+'</button><button class="btn sec sm" data-p="'+esc(t.id)+'">Cambiar contraseña</button></div>'}).join("")}
+  $("alist").innerHTML=S.list.map(function(t){var c=t.config||{};return '<div class="rw"><div><strong>'+esc(t.name)+'</strong><div class="who">'+esc(t.email)+' · '+Object.keys(c.svc||{}).length+' servicios cargados</div><div class="lnk">'+esc(link(t.slug))+'</div>'+payBox(t)+'</div><span class="tag'+(t.active?'':' off')+'">'+(t.active?'Activo':'Dado de baja')+'</span><button class="btn sec sm" data-a="'+esc(t.id)+'">'+(t.active?'Dar de baja':'Dar de alta')+'</button><button class="btn sec sm" data-p="'+esc(t.id)+'">Cambiar contraseña</button></div>'}).join("")}
 $("alist").onclick=async function(e){
-  var a=e.target.closest("[data-a]"),p=e.target.closest("[data-p]");
+  var a=e.target.closest("[data-a]"),p=e.target.closest("[data-p]"),ps=e.target.closest("[data-ps]"),pm=e.target.closest("[data-pm]");
   try{
     if(a){var t=S.list.filter(function(x){return x.id===a.dataset.a})[0];await edge({action:"set_active",id:t.id,active:!t.active});await loadAdm()}
     if(p){var pw=prompt("Nueva contraseña para este taller (mínimo 8 caracteres):");if(!pw)return;await edge({action:"set_password",id:p.dataset.p,password:pw});msg("Contraseña cambiada.")}
+    if(ps){var v=$("pd-"+ps.dataset.ps).value||null;await edge({action:"set_paid",id:ps.dataset.ps,paid_until:v});await loadAdm();msg("Fecha guardada.")}
+    if(pm){var tl=S.list.filter(function(x){return x.id===pm.dataset.pm})[0],today=key(new Date()),base=(tl.paid_until&&tl.paid_until>today)?tl.paid_until:today,q=base.split("-"),dt=new Date(+q[0],+q[1]-1,+q[2]),dy=dt.getDate();dt.setDate(1);dt.setMonth(dt.getMonth()+1);dt.setDate(Math.min(dy,new Date(dt.getFullYear(),dt.getMonth()+1,0).getDate()));await edge({action:"set_paid",id:tl.id,paid_until:key(dt)});await loadAdm();msg("Se sumó un mes: pagado hasta el "+fmt(key(dt),{day:"numeric",month:"long",year:"numeric"})+".")}
   }catch(er){msg("No se pudo completar la acción: "+er.message,1)}};
 $("ago").onclick=async function(){
   var n=$("an").value.trim(),m=$("ae").value.trim(),p=$("ap").value;$("aerr").textContent="";
