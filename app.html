@@ -71,6 +71,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px d
 .hide{display:none}
 </style>
 <style>.lnk{word-break:break-all;font-size:14px;color:var(--mute)}.foot{margin-top:24px;font-size:14px}.foot a{color:var(--ink)}input[type=password],input[type=email]{width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}</style>
+<style>#poster{display:none}@media print{body.poster-on{background:#fff}body.poster-on .wrap{display:none}body.poster-on #poster{display:block;text-align:center;padding:40px;color:#000;background:#fff}#poster svg{width:420px;max-width:80%;height:auto}#poster h1{font-size:56px}}</style>
 </head>
 <body>
 <div class="wrap">
@@ -123,7 +124,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px d
         <button class="btn sec" id="copy">Copiar resumen</button> <span id="cok" class="who"></span></div>
     </div>
     <div id="cfg">
-      <div class="card"><h2>Link para tus clientes</h2><p class="sub" style="margin-top:0">Compartilo por WhatsApp o ponelo en el taller.</p><div class="lnk" id="mylink"></div><button class="btn sec" id="copylink">Copiar link</button> <span id="clok" class="who"></span></div>
+      <div class="card"><h2>Link para tus clientes</h2><p class="sub" style="margin-top:0">Compartilo por WhatsApp o ponelo en el taller.</p><div class="lnk" id="mylink"></div><div id="qr" style="width:170px;margin:12px 0"></div><button class="btn sec" id="copylink">Copiar link</button> <button class="btn sec" id="printqr">Imprimir cartel con QR</button> <span id="clok" class="who"></span></div>
       <p class="sub" style="margin-top:0">Los clientes solo ven lo que marques acá. Los cambios se guardan solos y no modifican los turnos ya tomados. <strong id="cfgok"></strong></p>
       <div id="tcfg"></div>
     </div>
@@ -140,6 +141,8 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px d
     <p class="sub">Dar de baja bloquea el ingreso del taller y lo oculta a los clientes. No borra la cuenta ni sus datos, y al dar de alta todo vuelve como estaba.</p>
   </section>
 </div>
+<div id="poster"></div>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 var URL_="https://aeludjdupwueckjohlmq.supabase.co",KEY="sb_publishable_X-X4bBEUJW0BB_TBk9ZZ8Q_uuWHDkUy";
@@ -156,12 +159,14 @@ function svcName(id){for(var i=0;i<SVC.length;i++)if(SVC[i].id===id)return SVC[i
 function msg(t,bad){var m=$("msg");m.textContent=t||"";m.style.color=bad?"var(--bad)":"var(--mute)"}
 function show(v){["login","cli","tal","adm"].forEach(function(n){$(n).classList.toggle("hide",n!==v)})}
 function head(a,b){$("ttl").textContent=a;$("sub").textContent=b||""}
-function mk(row){var c=row.config||{};return{name:row.name,active:row.active,svc:c.svc||{},days:c.days||[],open:c.open||8,close:c.close||17,cap:c.cap||1}}
+function mk(row){var c=row.config||{};return{name:row.name,active:row.active,svc:c.svc||{},days:c.days||[],open:c.open||8,close:c.close||17,cap:c.cap||1,brk:c.brk||null,off:c.off||[]}}
 function ens(t){return SVC.filter(function(s){return t.svc[s.id]})}
 function hrs(t){var o=[];for(var h=t.open;h<t.close;h++)o.push(h);return o}
-function tdays(t){var o=[],d=new Date();d.setHours(12,0,0,0);for(var i=0;i<28&&o.length<10;i++){d.setDate(d.getDate()+1);if(t.days.indexOf(d.getDay())>-1)o.push(key(d))}return o}
+function tdays(t){var o=[],d=new Date();d.setHours(12,0,0,0);for(var i=0;i<28&&o.length<10;i++){d.setDate(d.getDate()+1);var k=key(d);if(t.days.indexOf(d.getDay())>-1&&!isOff(t,k))o.push(k)}return o}
+function isOff(t,k){return (t.off||[]).some(function(r){return k>=r.from&&k<=r.to})}
+function inBrk(t,x){return !!t.brk&&x>=t.brk.from&&x<t.brk.to}
 function occ(l,x){return l.filter(function(b){return b.hour<=x&&x<b.hour+b.dur}).length}
-function fits(l,t,h,d){if(h+d>t.close)return false;for(var x=h;x<h+d;x++)if(occ(l,x)>=t.cap)return false;return true}
+function fits(l,t,h,d){if(h+d>t.close)return false;for(var x=h;x<h+d;x++)if(inBrk(t,x)||occ(l,x)>=t.cap)return false;return true}
 function freeHours(t,l,d){return hrs(t).filter(function(h){return fits(l,t,h,d)})}
 function dayOf(arr,k){return arr.filter(function(b){return b.date===k}).sort(function(a,b){return a.hour-b.hour})}
 
@@ -231,6 +236,10 @@ function mailText(t,k){
   var h="Asunto: Turnos de mañana, "+fmt(k)+" ("+l.length+(l.length===1?" trabajo":" trabajos")+")\n\n";
   if(!l.length)return h+"No hay turnos cargados para ese día.";
   return h+l.map(function(b){return hh(b.hour)+" a "+hh(b.hour+b.dur)+"  "+svcName(b.svc)+"\n       "+b.name+" · "+b.tel+"\n       "+b.car+(b.note?"\n       Nota: "+b.note:"")}).join("\n\n")}
+function waNum(tel){var d=String(tel||"").replace(/\D/g,"");if(d.indexOf("54")===0&&d.length>=12){if(d.indexOf("549")!==0)d="549"+d.slice(2);return d.length===13?d:null}d=d.replace(/^0+/,"");if(d.length===12){for(var i=2;i<=4;i++)if(d.substr(i,2)==="15"){d=d.slice(0,i)+d.slice(i+2);break}}return d.length===10?"549"+d:null}
+function wa(b){var n=waNum(b.tel);if(!n)return '<div class="who">Sin código de área en el teléfono: no se puede abrir WhatsApp.</div>';var nm=b.name.split(" ")[0],f=fmt(b.date,{weekday:"long",day:"numeric",month:"long"});
+  var t1="Hola "+nm+", te confirmamos tu turno en "+S.me.name+" el "+f+" a las "+hh(b.hour)+" para "+svcName(b.svc).toLowerCase()+". ¡Te esperamos!",t2="Hola "+nm+", tu "+b.car+" ya está listo para retirar en "+S.me.name+".";
+  return '<div style="margin-top:6px;display:flex;gap:14px;flex-wrap:wrap"><a class="x" style="color:var(--ok)" target="_blank" rel="noopener" href="https://wa.me/'+n+'?text='+encodeURIComponent(t1)+'">WhatsApp: confirmar turno</a><a class="x" style="color:var(--ok)" target="_blank" rel="noopener" href="https://wa.me/'+n+'?text='+encodeURIComponent(t2)+'">WhatsApp: está listo</a></div>'}
 function drawTur(){
   var t=mk(S.me),ds=tdays(t);
   if(!ds.length){$("pdays").innerHTML='<div class="empty">Marcá al menos un día de atención en Configuración.</div>';$("plist").innerHTML="";$("mail").textContent="";$("mailsub").textContent="";return}
@@ -238,7 +247,7 @@ function drawTur(){
   $("pdays").innerHTML=ds.map(function(k){return '<button class="chip" aria-pressed="'+(S.pday===k)+'" data-d="'+k+'">'+esc(fmt(k,{weekday:"short",day:"numeric",month:"short"}))+'<small>'+dayOf(S.turnos,k).length+' turnos</small></button>'}).join("");
   var l=dayOf(S.turnos,S.pday);
   $("ptitle").textContent="Turnos del "+fmt(S.pday);
-  $("plist").innerHTML=l.length?l.map(function(b){return '<div class="t"><div class="hr">'+hh(b.hour)+'</div><div><span class="tag">'+esc(svcName(b.svc))+'</span> <span class="who">'+b.dur+' h</span><div>'+esc(b.name)+' · '+esc(b.tel)+'</div><div class="who">'+esc(b.car)+(b.note?' · '+esc(b.note):'')+'</div></div><button class="x" data-x="'+esc(b.id)+'">Cancelar</button></div>'}).join(""):'<div class="empty">Sin turnos para este día.</div>';
+  $("plist").innerHTML=l.length?l.map(function(b){return '<div class="t"><div class="hr">'+hh(b.hour)+'</div><div><span class="tag">'+esc(svcName(b.svc))+'</span> <span class="who">'+b.dur+' h</span><div>'+esc(b.name)+' · '+esc(b.tel)+'</div><div class="who">'+esc(b.car)+(b.note?' · '+esc(b.note):'')+'</div>'+wa(b)+'</div><button class="x" data-x="'+esc(b.id)+'">Cancelar</button></div>'}).join(""):'<div class="empty">Sin turnos para este día.</div>';
   $("mail").textContent=mailText(t,ds[0]);
   $("mailsub").textContent="Turnos del "+fmt(ds[0])+". Cuando tengamos dominio propio, este resumen te va a llegar solo por mail todos los días a las 20:00."}
 $("pdays").onclick=function(e){var b=e.target.closest("[data-d]");if(!b)return;S.pday=b.dataset.d;drawTur()};
@@ -246,14 +255,26 @@ $("plist").onclick=async function(e){var b=e.target.closest("[data-x]");if(!b)re
 $("copy").onclick=function(){var x=$("mail").textContent;try{navigator.clipboard.writeText(x).then(function(){$("cok").textContent="Copiado"},function(){$("cok").textContent="No se pudo copiar"})}catch(e){$("cok").textContent="No se pudo copiar"}};
 function link(slug){return location.origin+location.pathname+"?t="+slug}
 $("copylink").onclick=function(){try{navigator.clipboard.writeText(link(S.me.slug)).then(function(){$("clok").textContent="Copiado"},function(){$("clok").textContent="No se pudo copiar"})}catch(e){$("clok").textContent="No se pudo copiar"}};
+function qrSvg(text){var q=qrcode(0,"M");q.addData(text);q.make();var n=q.getModuleCount(),m=2,p="";for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(q.isDark(r,c))p+="M"+(c+m)+" "+(r+m)+"h1v1h-1z";var z=n+2*m;return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+z+' '+z+'" shape-rendering="crispEdges" role="img" aria-label="Código QR"><rect width="100%" height="100%" fill="#fff"/><path d="'+p+'" fill="#000"/></svg>'}
+function printPoster(){if(typeof qrcode==="undefined"){msg("No se pudo generar el QR. Revisá tu conexión.",1);return}
+  var l=link(S.me.slug);$("poster").innerHTML='<h1>'+esc(S.me.name)+'</h1><p style="font-size:28px;margin:12px 0 24px">Sacá tu turno desde el celular</p>'+qrSvg(l)+'<p style="font-size:20px;margin-top:20px;word-break:break-all">'+esc(l)+'</p><p style="font-size:16px;margin-top:28px">Escaneá el código con la cámara de tu celular</p>';
+  document.body.classList.add("poster-on");window.print()}
+window.addEventListener("afterprint",function(){document.body.classList.remove("poster-on")});
 function opts(a,b,sel,f){var o="";for(var i=a;i<=b;i++)o+='<option value="'+i+'"'+(i===sel?' selected':'')+'>'+f(i)+'</option>';return o}
 function drawCfg(){
-  var t=mk(S.me);$("mylink").textContent=link(S.me.slug);
+  var t=mk(S.me);$("mylink").textContent=link(S.me.slug);$("qr").innerHTML=typeof qrcode==="undefined"?"":qrSvg(link(S.me.slug));
   $("tcfg").innerHTML=
   '<div class="card"><h2>Datos del taller</h2><label for="cn">Nombre</label><input id="cn" maxlength="100" value="'+esc(S.me.name)+'"></div>'+
   '<div class="card"><h2>Trabajos que hacemos</h2>'+SVC.map(function(s){var on=!!t.svc[s.id];return '<div class="rw"><label class="ck"><input type="checkbox" data-sv="'+s.id+'"'+(on?' checked':'')+'> '+esc(s.n)+'</label><span class="who">Dura aprox.</span><select data-du="'+s.id+'" aria-label="Duración de '+esc(s.n)+'"'+(on?'':' disabled')+'>'+opts(1,4,t.svc[s.id],function(n){return n+" h"})+'</select></div>'}).join("")+'</div>'+
   '<div class="card"><h2>Días de atención</h2><div class="dys">'+[1,2,3,4,5,6,0].map(function(n){return '<label class="ck"><input type="checkbox" data-dy="'+n+'"'+(t.days.indexOf(n)>-1?' checked':'')+'> '+DIAS[n]+'</label>'}).join("")+'</div>'+(t.days.length?'':'<div class="empty">Sin días marcados, los clientes no van a ver horarios.</div>')+'</div>'+
-  '<div class="card"><h2>Horario y capacidad</h2><div class="chips"><div><label for="op">Abrimos</label><select id="op" data-op="1">'+opts(6,20,t.open,hh)+'</select></div><div><label for="cl">Cerramos</label><select id="cl" data-cl="1">'+opts(7,22,t.close,hh)+'</select></div><div><label for="cp">Autos al mismo tiempo</label><select id="cp" data-cp="1">'+opts(1,5,t.cap,String)+'</select></div></div></div>'}
+  '<div class="card"><h2>Horario y capacidad</h2><div class="chips"><div><label for="op">Abrimos</label><select id="op" data-op="1">'+opts(6,20,t.open,hh)+'</select></div><div><label for="cl">Cerramos</label><select id="cl" data-cl="1">'+opts(7,22,t.close,hh)+'</select></div><div><label for="cp">Autos al mismo tiempo</label><select id="cp" data-cp="1">'+opts(1,5,t.cap,String)+'</select></div></div></div>'+cfgExtra(t)}
+function cfgExtra(t){
+  var b=t.brk,off=t.off||[];
+  return '<div class="card"><h2>Pausa y días cerrados</h2>'+
+  '<div class="chips"><div><label for="bf">Pausa diaria (almuerzo)</label><select id="bf" data-bf="1"><option value="">Sin pausa</option>'+opts(t.open,t.close-1,b?b.from:-1,hh)+'</select></div>'+(b?'<div><label for="bt">Reabrimos a las</label><select id="bt" data-bt="1">'+opts(b.from+1,t.close,b.to,hh)+'</select></div>':'')+'</div>'+
+  '<label style="margin-top:18px">Días cerrados (feriados, vacaciones)</label><div class="chips"><div><label for="of1" class="who" style="margin:0">Desde</label><input id="of1" type="date"></div><div><label for="of2" class="who" style="margin:0">Hasta (opcional)</label><input id="of2" type="date"></div></div>'+
+  '<button class="btn sec sm" style="margin-top:10px" data-addoff="1">Agregar días cerrados</button>'+
+  (off.length?off.map(function(r,i){return '<div class="rw"><span>'+esc(r.from===r.to?fmt(r.from,{day:"numeric",month:"long",year:"numeric"}):fmt(r.from,{day:"numeric",month:"long"})+' al '+fmt(r.to,{day:"numeric",month:"long",year:"numeric"}))+'</span><button class="x" data-rm="'+i+'">Quitar</button></div>'}).join(""):'<div class="empty">No hay días cerrados cargados.</div>')+'</div>'}
 async function saveCfg(fields){var r=await sb.from("talleres").update(fields).eq("id",S.me.id);$("cfgok").textContent=r.error?"No se pudo guardar. Probá de nuevo.":"Cambios guardados"}
 $("tcfg").addEventListener("change",async function(e){
   var c=S.me.config,el=e.target,d=el.dataset;c.svc=c.svc||{};c.days=c.days||[];
@@ -263,8 +284,16 @@ $("tcfg").addEventListener("change",async function(e){
   else if(d.op){c.open=+el.value;if(c.close<=c.open)c.close=c.open+1}
   else if(d.cl){c.close=+el.value;if(c.open>=c.close)c.open=c.close-1}
   else if(d.cp)c.cap=+el.value;
+  else if(d.bf){if(el.value==="")delete c.brk;else{var f=+el.value;c.brk={from:f,to:Math.max(f+1,(c.brk&&c.brk.to)||f+1)}}}
+  else if(d.bt&&c.brk){c.brk.to=Math.max(+el.value,c.brk.from+1)}
   else return;
   drawCfg();await saveCfg({config:c})});
+$("tcfg").addEventListener("click",async function(e){
+  var b=e.target.closest("[data-addoff],[data-rm]");if(!b)return;var c=S.me.config;c.off=c.off||[];
+  if(b.dataset.addoff){var f=$("of1").value,t2=$("of2").value||f;if(!f||t2<f){$("cfgok").textContent="Elegí una fecha válida.";return}if(c.off.length>=50){$("cfgok").textContent="Llegaste al máximo de períodos cargados.";return}c.off.push({from:f,to:t2});c.off.sort(function(a,b){return a.from<b.from?-1:1})}
+  else c.off.splice(+b.dataset.rm,1);
+  drawCfg();await saveCfg({config:c})});
+$("printqr").onclick=printPoster;
 var nameT;$("tcfg").addEventListener("input",function(e){if(e.target.id!=="cn")return;S.me.name=e.target.value.trim()||"Taller sin nombre";$("ttl").textContent=S.me.name;clearTimeout(nameT);nameT=setTimeout(function(){saveCfg({name:S.me.name})},700)});
 function drawTal(){
   $("tur").classList.toggle("hide",S.sub!==1);$("cfg").classList.toggle("hide",S.sub!==2);
