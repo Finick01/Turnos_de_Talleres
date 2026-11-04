@@ -184,7 +184,7 @@ $("go").onclick=async function(){
   if(!nm||!tel||!car){$("err").textContent="Completá nombre, teléfono y vehículo para confirmar.";return}
   var btn=this;btn.disabled=true;$("err").textContent="";
   var r=await sb.rpc("book",{p_slug:S.slug,p_date:S.day,p_hour:S.hour,p_svc:S.svc,p_name:nm,p_tel:tel,p_car:car,p_note:nt||null});
-  if(r.error){var m=r.error.message||"";$("err").textContent=m.indexOf("horario_ocupado")>-1?"Ese horario se ocupó recién. Elegí otro.":m.indexOf("taller_no_disponible")>-1?"Este taller no está tomando turnos.":"No se pudo reservar. Probá con otro horario.";S.hour=null;await loadCli();return}
+  if(r.error){var m=r.error.message||"";var E={horario_ocupado:"Ese horario se ocupó recién. Elegí otro.",taller_no_disponible:"Este taller no está tomando turnos.",limite_por_telefono:"Ya tenés 3 turnos reservados con este teléfono. Si necesitás otro, comunicate con el taller.",telefono_invalido:"Revisá el teléfono: tiene que tener entre 6 y 15 números.",demasiados_turnos:"Hay muchas reservas en este momento. Probá de nuevo en un rato."},k2=Object.keys(E).filter(function(x){return m.indexOf(x)>-1})[0];$("err").textContent=k2?E[k2]:"No se pudo reservar. Probá con otro horario.";S.hour=null;await loadCli();return}
   var dn=$("done"),dd=S.day,hr=S.hour,sv=S.svc;dn.classList.remove("hide");
   dn.innerHTML="<h2>Turno confirmado</h2><p style=\"margin:0\">"+esc(nm)+", te esperamos en "+esc(S.t.name)+" el <strong>"+esc(fmt(dd))+" a las "+hh(hr)+"</strong> para "+esc(svcName(sv).toLowerCase())+". Vehículo: "+esc(car)+".</p>";
   S.svc=null;S.day=null;S.hour=null;["nm","tel","car","note"].forEach(function(i){$(i).value=""});
