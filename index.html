@@ -104,6 +104,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px d
   </section>
 
   <section id="tal" class="hide">
+    <div class="card ok hide" id="nuevo" role="status" aria-live="polite"></div>
     <div class="tabs"><button class="tab mini" id="s1">Turnos</button><button class="tab mini" id="s2">Configuración</button><button class="tab mini" id="out1">Salir</button></div>
     <div id="tur">
       <div class="card"><h2>Turnos por día</h2><div class="chips" id="pdays"></div></div>
@@ -191,10 +192,30 @@ $("go").onclick=async function(){
   await loadCli();dn.scrollIntoView({behavior:"smooth",block:"center"})};
 
 // ---------- Taller ----------
-async function loadTal(){
+async function refreshTal(notify){
   var d1=new Date();d1.setDate(d1.getDate()+1);var d2=new Date();d2.setDate(d2.getDate()+29);
   var r=await sb.from("turnos").select("*").gte("date",key(d1)).lte("date",key(d2)).order("date").order("hour");
-  S.turnos=r.data||[];head(S.me.name,"Tu panel de turnos.");drawTal()}
+  if(r.error||!S.me)return;
+  var old={};S.turnos.forEach(function(b){old[b.id]=1});
+  var nu=(r.data||[]).filter(function(b){return !old[b.id]});
+  S.turnos=r.data||[];
+  if(S.sub===1)drawTur();
+  if(notify&&nu.length)showNew(nu)}
+async function loadTal(){await refreshTal(false);head(S.me.name,"Tu panel de turnos.");drawTal();startRT()}
+function beep(){try{var c=window._ac;if(!c)return;c.resume();var o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=.15;o.start();o.stop(c.currentTime+.3)}catch(e){}}
+document.addEventListener("click",function(){try{window._ac=window._ac||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}});
+function showNew(nu){
+  var n=$("nuevo");n.classList.remove("hide");
+  n.innerHTML="<h2>"+(nu.length===1?"Llegó un turno nuevo":"Llegaron "+nu.length+" turnos nuevos")+"</h2>"+nu.slice(0,3).map(function(b){return "<div>"+esc(fmt(b.date,{weekday:"long",day:"numeric",month:"long"}))+", "+hh(b.hour)+" · "+esc(svcName(b.svc))+" · "+esc(b.name)+" · "+esc(b.car)+"</div>"}).join("")+(nu.length>3?"<div class=\"who\">y "+(nu.length-3)+" más</div>":"")+"<button class=\"btn sec sm\" id=\"nuok\" style=\"margin-top:10px\">Entendido</button>";
+  $("nuok").onclick=function(){n.classList.add("hide");document.title="Turnero de talleres"};
+  document.title="(Nuevo) Turnero de talleres";beep()}
+var RT=null,POLL=null;
+function vis(){if(!document.hidden&&S.me)refreshTal(true)}
+function stopRT(){if(RT){sb.removeChannel(RT);RT=null}clearInterval(POLL);document.removeEventListener("visibilitychange",vis)}
+function startRT(){stopRT();
+  RT=sb.channel("turnos-"+S.me.id).on("postgres_changes",{event:"*",schema:"public",table:"turnos",filter:"taller_id=eq."+S.me.id},function(){refreshTal(true)}).subscribe();
+  POLL=setInterval(function(){refreshTal(true)},30000);
+  document.addEventListener("visibilitychange",vis)}
 function mailText(t,k){
   var l=dayOf(S.turnos,k);
   var h="Asunto: Turnos de mañana, "+fmt(k)+" ("+l.length+(l.length===1?" trabajo":" trabajos")+")\n\n";
@@ -269,7 +290,7 @@ $("ago").onclick=async function(){
   this.disabled=false};
 
 // ---------- Ingreso ----------
-async function out(){await sb.auth.signOut();S.me=null;msg("");await showLogin()}
+async function out(){stopRT();await sb.auth.signOut();S.me=null;S.turnos=[];msg("");await showLogin()}
 $("out1").onclick=out;$("out2").onclick=out;
 async function showLogin(){
   show("login");head("Turnero de talleres","Ingresá con tu cuenta.");
