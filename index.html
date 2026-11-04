@@ -75,11 +75,13 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px d
     <div class="card" id="lg"><h2>Ingresar</h2>
       <label for="le">Mail</label><input id="le" type="email" autocomplete="username">
       <label for="lp">Contraseña</label><input id="lp" type="password" autocomplete="current-password">
+      <label class="ck" style="margin-top:8px;font-size:15px"><input type="checkbox" data-show="lp"> Mostrar contraseña</label>
       <button class="btn" id="lgo">Ingresar</button></div>
     <div class="card hide" id="su"><h2>Crear la cuenta de administrador</h2>
       <p class="sub" style="margin-top:0">Es la primera vez que se abre el sistema. Esta cuenta controla quién usa el servicio.</p>
       <label for="se">Mail</label><input id="se" type="email" autocomplete="username">
       <label for="sp">Contraseña (mínimo 8 caracteres)</label><input id="sp" type="password" autocomplete="new-password">
+      <label class="ck" style="margin-top:8px;font-size:15px"><input type="checkbox" data-show="sp,sq"> Mostrar contraseña</label>
       <label for="sq">Repetir contraseña</label><input id="sq" type="password" autocomplete="new-password">
       <button class="btn" id="sgo">Crear administrador</button></div>
   </section>
@@ -290,6 +292,7 @@ $("ago").onclick=async function(){
   this.disabled=false};
 
 // ---------- Ingreso ----------
+document.addEventListener("change",function(e){var el=e.target;if(!el.dataset||!el.dataset.show)return;el.dataset.show.split(",").forEach(function(i){$(i).type=el.checked?"text":"password"})});
 async function out(){stopRT();await sb.auth.signOut();S.me=null;S.turnos=[];msg("");await showLogin()}
 $("out1").onclick=out;$("out2").onclick=out;
 async function showLogin(){
