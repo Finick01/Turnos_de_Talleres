@@ -120,13 +120,19 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px d
 
   <section id="tal" class="hide">
     <div class="card ok hide" id="nuevo" role="status" aria-live="polite"></div>
-    <div class="tabs"><button class="tab mini" id="s1">Turnos</button><button class="tab mini" id="s2">Configuración</button><button class="tab mini" id="out1">Salir</button></div>
+    <div class="tabs" style="flex-wrap:wrap"><button class="tab mini" id="s1">Turnos</button><button class="tab mini" id="s3">Agenda completa</button><button class="tab mini" id="s2">Configuración</button><button class="tab mini" id="out1">Salir</button></div>
     <div id="tur">
       <div class="card"><h2>Turnos por día</h2><div class="chips" id="pdays"></div></div>
       <div class="card"><h2 id="ptitle">Turnos</h2><div id="plist"></div></div>
       <div class="card"><h2>Historial por patente</h2><div class="chips"><input id="hq" placeholder="Ej: AB123CD" maxlength="10" style="max-width:200px" autocapitalize="characters"><button class="btn sec sm" id="hgo">Buscar</button></div><div id="hres" style="margin-top:10px"></div></div>
       <div class="card"><h2>Resumen para mañana</h2><p class="sub" id="mailsub" style="margin-top:0"></p><pre id="mail"></pre>
         <button class="btn sec" id="copy">Copiar resumen</button> <span id="cok" class="who"></span></div>
+    </div>
+    <div id="agd">
+      <div class="card"><h2>Todas las reservas</h2><p class="sub" style="margin-top:0">Mirá lo que viene para anticipar repuestos y materiales. Las notas de los clientes te cuentan qué le pasa al vehículo.</p>
+        <div class="chips"><div><label for="agf">Trabajo</label><select id="agf"></select></div><div><label for="agr">Período</label><select id="agr"><option value="7">Próximos 7 días</option><option value="30">Próximos 30 días</option><option value="60" selected>Todo lo reservado (60 días)</option></select></div></div>
+        <div id="agsum" style="margin-top:14px"></div></div>
+      <div class="card"><div id="aglist"></div><button class="btn sec" id="agcopy">Copiar lista</button> <span id="agok" class="who"></span></div>
     </div>
     <div id="cfg">
       <div class="card"><h2>Link para tus clientes</h2><p class="sub" style="margin-top:0">Compartilo por WhatsApp o ponelo en el taller.</p><div class="lnk" id="mylink"></div><div id="qr" style="width:170px;margin:12px 0"></div><button class="btn sec" id="copylink">Copiar link</button> <button class="btn sec" id="printqr">Imprimir cartel con QR</button> <span id="clok" class="who"></span></div>
@@ -168,7 +174,7 @@ function head(a,b){$("ttl").textContent=a;$("sub").textContent=b||""}
 function mk(row){var c=row.config||{};return{name:row.name,active:row.active,svc:c.svc||{},days:c.days||[],open:c.open||8,close:c.close||17,cap:c.cap||1,brk:c.brk||null,off:c.off||[]}}
 function ens(t){return SVC.filter(function(s){return t.svc[s.id]})}
 function hrs(t){var o=[];for(var h=t.open;h<t.close;h++)o.push(h);return o}
-function tdays(t){var o=[],d=new Date();d.setHours(12,0,0,0);for(var i=0;i<28&&o.length<10;i++){d.setDate(d.getDate()+1);var k=key(d);if(t.days.indexOf(d.getDay())>-1&&!isOff(t,k))o.push(k)}return o}
+function tdays(t,hoy){var o=[],d=new Date();d.setHours(12,0,0,0);if(hoy)d.setDate(d.getDate()-1);for(var i=0;i<28&&o.length<10;i++){d.setDate(d.getDate()+1);var k=key(d);if(t.days.indexOf(d.getDay())>-1&&!isOff(t,k))o.push(k)}return o}
 function isOff(t,k){return (t.off||[]).some(function(r){return k>=r.from&&k<=r.to})}
 function inBrk(t,x){return !!t.brk&&x>=t.brk.from&&x<t.brk.to}
 function occ(l,x){return l.filter(function(b){return b.hour<=x&&x<b.hour+b.dur}).length}
@@ -250,14 +256,14 @@ var EST={pendiente:"Pendiente",confirmado:"Confirmado",en_taller:"En el taller",
 function act(b){return b.estado!=="cancelado"}
 function estSel(b){return '<select data-st="'+esc(b.id)+'" aria-label="Estado del turno" style="margin-left:6px;padding:3px 6px"'+(b.estado==="cancelado"?' disabled':'')+'>'+Object.keys(EST).map(function(k){return '<option value="'+k+'"'+(b.estado===k?' selected':'')+'>'+EST[k]+'</option>'}).join("")+'</select>'}
 async function refreshTal(notify){
-  var d1=new Date();d1.setDate(d1.getDate()+1);var d2=new Date();d2.setDate(d2.getDate()+29);
+  var d1=new Date();var d2=new Date();d2.setDate(d2.getDate()+60);
   var r=await sb.from("turnos").select("*").gte("date",key(d1)).lte("date",key(d2)).order("date").order("hour");
   if(r.error||!S.me)return;
   var old={};S.turnos.forEach(function(b){old[b.id]=b.estado});
   var nu=(r.data||[]).filter(function(b){return !(b.id in old)});
   var cn=(r.data||[]).filter(function(b){return (b.id in old)&&old[b.id]!=="cancelado"&&b.estado==="cancelado"});
   S.turnos=r.data||[];
-  if(S.sub===1)drawTur();
+  if(S.sub===1)drawTur();else if(S.sub===3)drawAgd();
   if(notify&&(nu.length||cn.length))showNew(nu,cn)}
 async function loadTal(){await refreshTal(false);head(S.me.name,"Tu panel de turnos.");drawTal();startRT()}
 function beep(){try{var c=window._ac;if(!c)return;c.resume();var o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=.15;o.start();o.stop(c.currentTime+.3)}catch(e){}}
@@ -285,15 +291,15 @@ function wa(b){var n=waNum(b.tel);if(!n)return '<div class="who">Sin código de 
   var t1="Hola "+nm+", te confirmamos tu turno en "+S.me.name+" el "+f+" a las "+hh(b.hour)+" para "+svcName(b.svc).toLowerCase()+". ¡Te esperamos!",t2="Hola "+nm+", tu "+b.car+" ya está listo para retirar en "+S.me.name+".";
   return '<div style="margin-top:6px;display:flex;gap:14px;flex-wrap:wrap"><a class="x" style="color:var(--ok)" target="_blank" rel="noopener" href="https://wa.me/'+n+'?text='+encodeURIComponent(t1)+'">WhatsApp: confirmar turno</a><a class="x" style="color:var(--ok)" target="_blank" rel="noopener" href="https://wa.me/'+n+'?text='+encodeURIComponent(t2)+'">WhatsApp: está listo</a></div>'}
 function drawTur(){
-  var t=mk(S.me),ds=tdays(t);
+  var t=mk(S.me),ds=tdays(t,true),dm=tdays(t)[0]||ds[0];
   if(!ds.length){$("pdays").innerHTML='<div class="empty">Marcá al menos un día de atención en Configuración.</div>';$("plist").innerHTML="";$("mail").textContent="";$("mailsub").textContent="";return}
   if(ds.indexOf(S.pday)<0)S.pday=ds[0];
   $("pdays").innerHTML=ds.map(function(k){return '<button class="chip" aria-pressed="'+(S.pday===k)+'" data-d="'+k+'">'+esc(fmt(k,{weekday:"short",day:"numeric",month:"short"}))+'<small>'+dayOf(S.turnos,k).filter(act).length+' turnos</small></button>'}).join("");
   var l=dayOf(S.turnos,S.pday);
   $("ptitle").textContent="Turnos del "+fmt(S.pday);
   $("plist").innerHTML=l.length?l.map(function(b){var c=b.estado==="cancelado";return '<div class="t"'+(c?' style="opacity:.55"':'')+'><div class="hr">'+hh(b.hour)+'</div><div><span class="tag">'+esc(svcName(b.svc))+'</span> <span class="who">'+b.dur+' h</span> '+estSel(b)+'<div>'+esc(b.name)+' · '+esc(b.tel)+'</div><div class="who">'+esc(b.car)+(b.plate?' · '+esc(b.plate):'')+(b.note?' · '+esc(b.note):'')+'</div>'+(c?'':wa(b))+(b.plate?'<button class="x" data-hist="'+esc(b.plate)+'">Ver historial de la patente</button>':'')+'</div>'+(c?'<span></span>':'<button class="x" data-x="'+esc(b.id)+'">Cancelar</button>')+'</div>'}).join(""):'<div class="empty">Sin turnos para este día.</div>';
-  $("mail").textContent=mailText(t,ds[0]);
-  $("mailsub").textContent="Turnos del "+fmt(ds[0])+". Cuando tengamos dominio propio, este resumen te va a llegar solo por mail todos los días a las 20:00."}
+  $("mail").textContent=mailText(t,dm);
+  $("mailsub").textContent="Turnos del "+fmt(dm)+". Cuando tengamos dominio propio, este resumen te va a llegar solo por mail todos los días a las 20:00."}
 $("pdays").onclick=function(e){var b=e.target.closest("[data-d]");if(!b)return;S.pday=b.dataset.d;drawTur()};
 $("plist").onclick=async function(e){
   var h=e.target.closest("[data-hist]");if(h){$("hq").value=h.dataset.hist;histSearch();$("hq").scrollIntoView({behavior:"smooth",block:"center"});return}
@@ -349,11 +355,25 @@ $("tcfg").addEventListener("click",async function(e){
   drawCfg();await saveCfg({config:c})});
 $("printqr").onclick=printPoster;
 var nameT;$("tcfg").addEventListener("input",function(e){if(e.target.id!=="cn")return;S.me.name=e.target.value.trim()||"Taller sin nombre";$("ttl").textContent=S.me.name;clearTimeout(nameT);nameT=setTimeout(function(){saveCfg({name:S.me.name})},700)});
+function agList(){var f=$("agf").value,n=+$("agr").value,d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+n);var end=key(d),today=key(new Date());return S.turnos.filter(function(b){return act(b)&&b.date>=today&&b.date<=end&&(!f||b.svc===f)})}
+function agGroups(l){var g={};l.forEach(function(b){(g[b.date]=g[b.date]||[]).push(b)});return g}
+function drawAgd(){
+  var l=agList(),by={};l.forEach(function(b){by[b.svc]=(by[b.svc]||0)+1});
+  $("agsum").innerHTML=l.length?'<div class="who" style="margin-bottom:6px">'+l.length+(l.length===1?' turno':' turnos')+' en el período</div>'+Object.keys(by).map(function(k){return '<span class="tag" style="margin:0 6px 6px 0">'+esc(svcName(k))+': '+by[k]+'</span>'}).join(""):'<div class="empty">No hay turnos en este período.</div>';
+  var g=agGroups(l);
+  $("aglist").innerHTML=Object.keys(g).sort().map(function(k){return '<div class="hr" style="font-size:20px;margin-top:14px">'+esc(fmt(k))+' <span class="who">('+g[k].length+')</span></div>'+g[k].map(function(b){return '<div class="rw"><div><strong>'+hh(b.hour)+'</strong> · <span class="tag">'+esc(svcName(b.svc))+'</span><div>'+esc(b.car)+(b.plate?' · '+esc(b.plate):'')+' · '+esc(b.name)+'</div>'+(b.note?'<div class="who">Nota: '+esc(b.note)+'</div>':'')+'</div><span class="who">'+esc(EST[b.estado]||b.estado)+'</span></div>'}).join("")}).join("")}
+function agText(){var l=agList(),g=agGroups(l),by={};l.forEach(function(b){by[b.svc]=(by[b.svc]||0)+1});
+  var o=["Agenda de "+S.me.name,""];
+  Object.keys(g).sort().forEach(function(k){o.push(fmt(k));g[k].forEach(function(b){o.push("  "+hh(b.hour)+" "+svcName(b.svc)+" - "+b.car+(b.plate?" "+b.plate:"")+" - "+b.name+(b.note?" - Nota: "+b.note:""))});o.push("")});
+  o.push("Resumen: "+(Object.keys(by).map(function(k){return svcName(k)+" "+by[k]}).join(", ")||"sin turnos"));return o.join("\n")}
+$("agf").innerHTML='<option value="">Todos los trabajos</option>'+SVC.map(function(s){return '<option value="'+s.id+'">'+esc(s.n)+'</option>'}).join("");
+$("agf").onchange=drawAgd;$("agr").onchange=drawAgd;
+$("agcopy").onclick=function(){try{navigator.clipboard.writeText(agText()).then(function(){$("agok").textContent="Copiado"},function(){$("agok").textContent="No se pudo copiar"})}catch(e){$("agok").textContent="No se pudo copiar"}};
 function drawTal(){
-  $("tur").classList.toggle("hide",S.sub!==1);$("cfg").classList.toggle("hide",S.sub!==2);
-  $("s1").setAttribute("aria-selected",S.sub===1);$("s2").setAttribute("aria-selected",S.sub===2);
-  $("cfgok").textContent="";if(S.sub===1)drawTur();else drawCfg()}
-$("s1").onclick=function(){S.sub=1;drawTal()};$("s2").onclick=function(){S.sub=2;drawTal()};
+  $("tur").classList.toggle("hide",S.sub!==1);$("agd").classList.toggle("hide",S.sub!==3);$("cfg").classList.toggle("hide",S.sub!==2);
+  $("s1").setAttribute("aria-selected",S.sub===1);$("s2").setAttribute("aria-selected",S.sub===2);$("s3").setAttribute("aria-selected",S.sub===3);
+  $("cfgok").textContent="";if(S.sub===1)drawTur();else if(S.sub===3)drawAgd();else drawCfg()}
+$("s1").onclick=function(){S.sub=1;drawTal()};$("s3").onclick=function(){S.sub=3;drawTal()};$("s2").onclick=function(){S.sub=2;drawTal()};
 
 // ---------- Administrador ----------
 async function edge(body){
