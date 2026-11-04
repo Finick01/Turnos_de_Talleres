@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Turnero de talleres</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eceae4;--card:#fbfaf7;--ink:#1d2125;--mute:#5c646b;--line:#cfccc3;--acc:#f0b400;--acc-ink:#1d2125;--ok:#1f7a4d;--bad:#b3392b;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181b;--card:#1f2327;--ink:#eceae4;--mute:#9aa2a9;--line:#343a40;--ok:#4cc58a;--bad:#ef7a6c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15181b;--card:#1f2327;--ink:#eceae4;--mute:#9aa2a9;--line:#343a40;--ok:#4cc58a;--bad:#ef7a6c;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px 48px}
+h1,h2{font-family:"Barlow Condensed",Arial Narrow,sans-serif;margin:0;letter-spacing:.2px}
+h1{font-size:clamp(34px,7vw,52px);line-height:1}
+h2{font-size:24px;margin-bottom:10px}
+.sub{color:var(--mute);margin:6px 0 18px}
+.stripe{height:10px;margin:0 0 16px;background:repeating-linear-gradient(-45deg,var(--acc) 0 14px,var(--ink) 14px 28px);border-radius:2px}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab{flex:1;padding:12px;border:2px solid var(--ink);background:transparent;color:var(--ink);font:600 16px Barlow,sans-serif;border-radius:8px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.tab.mini{padding:8px;font-size:15px}
+.bar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.bar label{margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:9px 12px;font:500 15px Barlow,sans-serif;cursor:pointer;text-align:left}
+.chip small{display:block;color:var(--mute);font-weight:400}
+.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--acc);color:var(--acc-ink)}
+.chip[aria-pressed="true"] small{color:var(--acc-ink)}
+.chip:disabled{opacity:.4;cursor:not-allowed;text-decoration:line-through}
+.svc{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input[type=text],input:not([type]),input[type=tel],textarea,select{width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+select{width:auto}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.row{grid-template-columns:1fr}}
+.btn{margin-top:16px;padding:13px 20px;border:0;border-radius:8px;background:var(--acc);color:var(--acc-ink);font:700 18px "Barlow Condensed",sans-serif;cursor:pointer}
+.btn.sec{background:transparent;border:2px solid var(--ink);color:var(--ink)}
+.btn.sm{margin:0;padding:8px 14px;font-size:16px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.sel{background:var(--ink);color:var(--bg);border-radius:8px;padding:12px 14px;margin-top:14px}
+.ok{border-left:6px solid var(--ok)}
+.warn{border-left:6px solid var(--bad)}
+.t{display:grid;grid-template-columns:64px 1fr auto;gap:12px;padding:12px 0;border-top:1px solid var(--line);align-items:start}
+.t:first-child{border-top:0}
+.rw{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line)}
+.rw:first-of-type{border-top:0}
+.ck{display:flex;gap:8px;align-items:center;margin:0;font-weight:500;flex:1;min-width:200px}
+.ck input{width:20px;height:20px}
+.dys{display:flex;flex-wrap:wrap;gap:6px 16px}
+.dys .ck{flex:none;min-width:0}
+.hr{font:700 24px "Barlow Condensed",sans-serif}
+.who{color:var(--mute);font-size:14px}
+.x{background:none;border:0;color:var(--bad);cursor:pointer;font:600 14px Barlow,sans-serif}
+.tag{display:inline-block;background:var(--acc);color:var(--acc-ink);border-radius:5px;padding:1px 8px;font-size:13px;font-weight:600}
+.tag.off{background:var(--bad);color:#fff}
+pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px dashed var(--mute);border-radius:8px;padding:14px;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;margin:0}
+.empty{color:var(--mute);padding:8px 0}
+.demo{font-size:13px;color:var(--mute);margin-top:24px}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="stripe"></div>
+  <h1 id="ttl"></h1>
+  <p class="sub" id="sub"></p>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="v1">Cliente</button>
+    <button class="tab" role="tab" id="v2">Taller (con log in)</button>
+    <button class="tab" role="tab" id="v3">Administrador</button>
+  </div>
+  <div class="bar" id="bar"><label for="tsel">Taller de prueba</label><select id="tsel"></select></div>
+
+  <section id="cli">
+    <div class="card warn hide" id="off1"><h2>Este taller no está tomando turnos</h2><p style="margin:0">Probá más tarde o comunicate directamente con el taller.</p></div>
+    <div id="cbody">
+      <div class="card"><h2>1. ¿Qué necesitás?</h2><div class="svc" id="svc"></div></div>
+      <div class="card"><h2>2. Elegí el día</h2><div class="chips" id="days"></div><div class="empty" id="dnote">Primero elegí qué necesitás.</div></div>
+      <div class="card"><h2>3. Elegí la hora</h2><div class="chips" id="hours"></div><div class="empty" id="hnote">Primero elegí un día.</div></div>
+      <div class="card"><h2>4. Tus datos</h2>
+        <div class="row"><div><label for="nm">Nombre y apellido</label><input id="nm" autocomplete="name"></div><div><label for="tel">Teléfono</label><input id="tel" type="tel" autocomplete="tel"></div></div>
+        <label for="car">Vehículo y patente</label><input id="car" placeholder="Ej: Fiat Cronos AB123CD">
+        <label for="note">¿Qué le pasa al vehículo? (opcional)</label><textarea id="note" rows="3"></textarea>
+        <div class="sel hide" id="resumen"></div>
+        <button class="btn" id="go" disabled>Confirmar turno</button>
+        <div class="empty" id="err" role="alert"></div>
+      </div>
+    </div>
+    <div class="card ok hide" id="done"></div>
+  </section>
+
+  <section id="tal">
+    <div class="card warn hide" id="off2"><h2>Tu cuenta está dada de baja</h2><p style="margin:0">Tus turnos y tu configuración se conservan. Para volver a usar el servicio, comunicate con el administrador.</p></div>
+    <div id="tbody">
+      <div class="tabs"><button class="tab mini" id="s1">Turnos</button><button class="tab mini" id="s2">Configuración</button></div>
+      <div id="tur">
+        <div class="card"><h2>Turnos por día</h2><div class="chips" id="pdays"></div></div>
+        <div class="card"><h2 id="ptitle">Turnos</h2><div id="plist"></div></div>
+        <div class="card"><h2>Resumen que le llega al taller</h2>
+          <p class="sub" id="mailsub" style="margin-top:0"></p>
+          <pre id="mail"></pre>
+          <button class="btn sec" id="copy">Copiar resumen</button> <span id="cok" class="who"></span>
+        </div>
+      </div>
+      <div id="cfg">
+        <p class="sub" style="margin-top:0">Los clientes solo ven lo que marques acá. Los cambios se guardan solos y no modifican los turnos ya tomados. <strong id="cfgok"></strong></p>
+        <div id="tcfg"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="adm">
+    <div class="card"><h2>Talleres</h2><p class="sub" id="astat" style="margin-top:0"></p><div id="alist"></div></div>
+    <p class="sub">Dar de baja bloquea el acceso del taller y oculta sus turnos a los clientes. No borra la cuenta ni sus datos, y al dar de alta todo vuelve como estaba.</p>
+  </section>
+
+  <p class="demo">Versión de prueba: los talleres y turnos de ejemplo son inventados y lo que cambies se guarda solo en este navegador.</p>
+</div>
+
+<script>
+var SVC=[
+ {id:"service",n:"Service y mantenimiento",d:"Aceite, filtros, revisión general"},
+ {id:"frenos",n:"Frenos",d:"Pastillas, discos, líquido"},
+ {id:"diag",n:"Diagnóstico",d:"Luces en el tablero, ruidos, fallas"},
+ {id:"alin",n:"Alineación y balanceo",d:"Dirección y neumáticos"},
+ {id:"chapa",n:"Chapa y pintura",d:"Golpes, rayones, pintura"}
+];
+var DIAS=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+var NAMES=["Marcos Ibáñez","Lucía Ferreyra","Raúl Domínguez","Carla Benítez","Nicolás Sosa","Paula Giménez","Hugo Acosta","Sofía Luna"];
+var CARS=["Renault Kangoo","VW Gol Trend","Ford Ranger","Toyota Hilux","Chevrolet Onix","Peugeot 208","Fiat Cronos","Citroën C3"];
+var NOTES=["Hace ruido al frenar","Service de los 20.000 km","Golpe en puerta trasera","Se prende la luz del motor","Vibra en el volante","Rayón en el paragolpes","",""];
+var S={talleres:[
+ {id:"costa-azul",name:"Taller Costa Azul",email:"costaazul@ejemplo.com",active:true,svc:{service:2,frenos:2,diag:1,alin:1,chapa:1},days:[1,2,3,4,5],open:8,close:17,cap:2},
+ {id:"chapa-sur",name:"Chapa y Pintura Sur",email:"chapasur@ejemplo.com",active:true,svc:{chapa:3},days:[1,2,3,4,5,6],open:9,close:18,cap:1},
+ {id:"mecanica-norte",name:"Mecánica Norte",email:"mecanicanorte@ejemplo.com",active:false,svc:{service:2,frenos:2,diag:1},days:[1,2,3,4,5],open:8,close:16,cap:1}
+],mine:[],tid:"costa-azul",view:1,sub:1,svc:null,day:null,hour:null,pday:null};
+try{var raw=localStorage.getItem("turnos_v2");if(raw){var p=JSON.parse(raw);if(p&&p.talleres&&p.talleres.length){S.talleres=p.talleres;S.mine=p.mine||[]}}}catch(e){}
+function save(){try{localStorage.setItem("turnos_v2",JSON.stringify({talleres:S.talleres,mine:S.mine}))}catch(e){}}
+function $(i){return document.getElementById(i)}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function key(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function fmt(k,o){var p=k.split("-");return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString("es-AR",o||{weekday:"long",day:"numeric",month:"long"})}
+function hh(h){return String(h).padStart(2,"0")+":00"}
+function hash(s){var h=7;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h}
+function svcName(id){for(var i=0;i<SVC.length;i++)if(SVC[i].id===id)return SVC[i].n;return id}
+function T(){return S.talleres.filter(function(t){return t.id===S.tid})[0]||S.talleres[0]}
+function ens(t){return SVC.filter(function(s){return t.svc[s.id]})}
+function hrs(t){var o=[];for(var h=t.open;h<t.close;h++)o.push(h);return o}
+function tdays(t){var o=[],d=new Date();d.setHours(12,0,0,0);for(var i=0;i<30&&o.length<10;i++){d.setDate(d.getDate()+1);if(t.days.indexOf(d.getDay())>-1)o.push(key(d))}return o}
+function occ(l,x){return l.filter(function(b){return b.hour<=x&&x<b.hour+b.dur}).length}
+function fits(l,t,h,d){if(h+d>t.close)return false;for(var x=h;x<h+d;x++)if(occ(l,x)>=t.cap)return false;return true}
+function seeds(t,k){var out=[],e=ens(t);if(!e.length)return out;hrs(t).forEach(function(h){var x=hash(t.id+k+h);if(x%6<2){var s=e[x%e.length],d=t.svc[s.id];if(fits(out,t,h,d))out.push({id:"s"+t.id+k+h,tid:t.id,date:k,hour:h,dur:d,svc:s.id,name:NAMES[x%NAMES.length],tel:"223 55"+(1000+x%9000),car:CARS[(x>>3)%CARS.length],note:NOTES[(x>>5)%NOTES.length],demo:true})}});return out}
+function all(t,k){return seeds(t,k).concat(S.mine.filter(function(b){return b.tid===t.id&&b.date===k})).sort(function(a,b){return a.hour-b.hour})}
+function freeHours(t,k,d){var l=all(t,k);return hrs(t).filter(function(h){return fits(l,t,h,d)})}
+
+// ---------- Cliente ----------
+function drawCli(){
+  var t=T();$("off1").classList.toggle("hide",t.active);$("cbody").classList.toggle("hide",!t.active);
+  if(!t.active)return;
+  var e=ens(t);
+  $("svc").innerHTML=e.length?e.map(function(s){return '<button class="chip" aria-pressed="'+(S.svc===s.id)+'" data-s="'+s.id+'">'+esc(s.n)+'<small>'+esc(s.d)+' · dura aprox. '+t.svc[s.id]+' h</small></button>'}).join(""):'<div class="empty">Este taller todavía no cargó sus servicios.</div>';
+  var d=S.svc?t.svc[S.svc]:0;
+  $("dnote").classList.toggle("hide",!!S.svc);
+  $("days").innerHTML=S.svc?tdays(t).map(function(k){var n=freeHours(t,k,d).length;return '<button class="chip" '+(n?'':'disabled ')+'aria-pressed="'+(S.day===k)+'" data-d="'+k+'">'+esc(fmt(k,{weekday:"short",day:"numeric",month:"short"}))+'<small>'+(n?n+" horarios libres":"Completo")+'</small></button>'}).join(""):"";
+  $("hnote").classList.toggle("hide",!!S.day);
+  $("hours").innerHTML=S.day&&S.svc?freeHours(t,S.day,d).map(function(h){return '<button class="chip" aria-pressed="'+(S.hour===h)+'" data-h="'+h+'">'+hh(h)+'</button>'}).join(""):"";
+  var r=$("resumen"),ok=S.svc&&S.day&&S.hour!=null;
+  if(ok){r.classList.remove("hide");r.innerHTML="<strong>"+esc(svcName(S.svc))+"</strong><br>"+esc(fmt(S.day))+", de "+hh(S.hour)+" a "+hh(S.hour+d)}else r.classList.add("hide");
+  $("go").disabled=!ok}
+$("svc").onclick=function(e){var b=e.target.closest("[data-s]");if(!b)return;S.svc=b.dataset.s;S.day=null;S.hour=null;drawCli()};
+$("days").onclick=function(e){var b=e.target.closest("[data-d]");if(!b)return;S.day=b.dataset.d;S.hour=null;drawCli()};
+$("hours").onclick=function(e){var b=e.target.closest("[data-h]");if(!b)return;S.hour=+b.dataset.h;drawCli()};
+$("go").onclick=function(){
+  var t=T(),nm=$("nm").value.trim(),tel=$("tel").value.trim(),car=$("car").value.trim();
+  if(!nm||!tel||!car){$("err").textContent="Completá nombre, teléfono y vehículo para confirmar.";return}
+  var d=t.svc[S.svc];
+  if(!fits(all(t,S.day),t,S.hour,d)){$("err").textContent="Ese horario se ocupó recién. Elegí otro.";S.hour=null;drawCli();return}
+  $("err").textContent="";
+  var b={id:"m"+Date.now(),tid:t.id,date:S.day,hour:S.hour,dur:d,svc:S.svc,name:nm,tel:tel,car:car,note:$("note").value.trim()};
+  S.mine.push(b);save();
+  var dn=$("done");dn.classList.remove("hide");
+  dn.innerHTML="<h2>Turno confirmado</h2><p style=\"margin:0\">"+esc(nm)+", te esperamos en "+esc(t.name)+" el <strong>"+esc(fmt(b.date))+" a las "+hh(b.hour)+"</strong> para "+esc(svcName(b.svc).toLowerCase())+". Vehículo: "+esc(car)+".</p>";
+  S.svc=null;S.day=null;S.hour=null;["nm","tel","car","note"].forEach(function(i){$(i).value=""});
+  drawCli();dn.scrollIntoView({behavior:"smooth",block:"center"})};
+
+// ---------- Taller ----------
+function mailText(t,k){
+  var l=all(t,k);
+  var head="Para: "+t.email+"\nAsunto: Turnos de mañana, "+fmt(k)+" ("+l.length+(l.length===1?" trabajo":" trabajos")+")\n\n";
+  if(!l.length)return head+"No hay turnos cargados para ese día.";
+  return head+l.map(function(b){return hh(b.hour)+" a "+hh(b.hour+b.dur)+"  "+svcName(b.svc)+"\n       "+b.name+" · "+b.tel+"\n       "+b.car+(b.note?"\n       Nota: "+b.note:"")}).join("\n\n")}
+function drawTur(){
+  var t=T(),ds=tdays(t);
+  if(!ds.length){$("pdays").innerHTML='<div class="empty">Marcá al menos un día de atención en Configuración.</div>';$("plist").innerHTML="";$("mail").textContent="";$("mailsub").textContent="";return}
+  if(ds.indexOf(S.pday)<0)S.pday=ds[0];
+  $("pdays").innerHTML=ds.map(function(k){return '<button class="chip" aria-pressed="'+(S.pday===k)+'" data-d="'+k+'">'+esc(fmt(k,{weekday:"short",day:"numeric",month:"short"}))+'<small>'+all(t,k).length+' turnos</small></button>'}).join("");
+  var l=all(t,S.pday);
+  $("ptitle").textContent="Turnos del "+fmt(S.pday);
+  $("plist").innerHTML=l.length?l.map(function(b){return '<div class="t"><div class="hr">'+hh(b.hour)+'</div><div><span class="tag">'+esc(svcName(b.svc))+'</span> <span class="who">'+b.dur+' h</span><div>'+esc(b.name)+' · '+esc(b.tel)+'</div><div class="who">'+esc(b.car)+(b.note?' · '+esc(b.note):'')+'</div></div>'+(b.demo?'<span></span>':'<button class="x" data-x="'+b.id+'">Cancelar</button>')+'</div>'}).join(""):'<div class="empty">Sin turnos para este día.</div>';
+  $("mail").textContent=mailText(t,ds[0]);
+  $("mailsub").textContent="Así se vería el mail de las 20:00 de hoy, con los turnos del "+fmt(ds[0])+". En la versión real sale solo todos los días."}
+$("pdays").onclick=function(e){var b=e.target.closest("[data-d]");if(!b)return;S.pday=b.dataset.d;drawTur()};
+$("plist").onclick=function(e){var b=e.target.closest("[data-x]");if(!b)return;S.mine=S.mine.filter(function(x){return x.id!==b.dataset.x});save();drawTur()};
+$("copy").onclick=function(){var x=$("mail").textContent;try{navigator.clipboard.writeText(x).then(function(){$("cok").textContent="Copiado"},function(){$("cok").textContent="No se pudo copiar"})}catch(e){$("cok").textContent="No se pudo copiar"}};
+
+function opts(a,b,sel,f){var o="";for(var i=a;i<=b;i++)o+='<option value="'+i+'"'+(i===sel?' selected':'')+'>'+f(i)+'</option>';return o}
+function drawCfg(){
+  var t=T();
+  $("tcfg").innerHTML=
+  '<div class="card"><h2>Datos del taller</h2><label for="cn">Nombre</label><input id="cn" value="'+esc(t.name)+'"></div>'+
+  '<div class="card"><h2>Trabajos que hacemos</h2>'+SVC.map(function(s){var on=!!t.svc[s.id];return '<div class="rw"><label class="ck"><input type="checkbox" data-sv="'+s.id+'"'+(on?' checked':'')+'> '+esc(s.n)+'</label><span class="who">Dura aprox.</span><select data-du="'+s.id+'" aria-label="Duración de '+esc(s.n)+'"'+(on?'':' disabled')+'>'+opts(1,4,t.svc[s.id],function(n){return n+" h"})+'</select></div>'}).join("")+'</div>'+
+  '<div class="card"><h2>Días de atención</h2><div class="dys">'+[1,2,3,4,5,6].map(function(n){return '<label class="ck"><input type="checkbox" data-dy="'+n+'"'+(t.days.indexOf(n)>-1?' checked':'')+'> '+DIAS[n]+'</label>'}).join("")+'</div>'+(t.days.length?'':'<div class="empty">Sin días marcados, los clientes no van a ver horarios.</div>')+'</div>'+
+  '<div class="card"><h2>Horario y capacidad</h2><div class="chips"><div><label for="op">Abrimos</label><select id="op" data-op="1">'+opts(6,20,t.open,hh)+'</select></div><div><label for="cl">Cerramos</label><select id="cl" data-cl="1">'+opts(7,22,t.close,hh)+'</select></div><div><label for="cp">Autos al mismo tiempo</label><select id="cp" data-cp="1">'+opts(1,5,t.cap,String)+'</select></div></div></div>'}
+$("tcfg").addEventListener("change",function(e){
+  var t=T(),el=e.target,d=el.dataset;
+  if(d.sv){if(el.checked)t.svc[d.sv]=t.svc[d.sv]||1;else delete t.svc[d.sv]}
+  else if(d.du)t.svc[d.du]=+el.value;
+  else if(d.dy){var n=+d.dy,i=t.days.indexOf(n);if(el.checked&&i<0)t.days.push(n);if(!el.checked&&i>-1)t.days.splice(i,1);t.days.sort()}
+  else if(d.op){t.open=+el.value;if(t.close<=t.open)t.close=t.open+1}
+  else if(d.cl){t.close=+el.value;if(t.open>=t.close)t.open=t.close-1}
+  else if(d.cp)t.cap=+el.value;
+  else return;
+  save();drawCfg();$("cfgok").textContent="Cambios guardados";S.svc=null;S.day=null;S.hour=null});
+$("tcfg").addEventListener("input",function(e){if(e.target.id!=="cn")return;var t=T();t.name=e.target.value||"Taller sin nombre";save();$("ttl").textContent=t.name;fillSel()});
+function drawTal(){
+  var t=T();$("off2").classList.toggle("hide",t.active);$("tbody").classList.toggle("hide",!t.active);
+  if(!t.active)return;
+  $("tur").classList.toggle("hide",S.sub!==1);$("cfg").classList.toggle("hide",S.sub!==2);
+  $("s1").setAttribute("aria-selected",S.sub===1);$("s2").setAttribute("aria-selected",S.sub===2);
+  $("cfgok").textContent="";
+  if(S.sub===1)drawTur();else drawCfg()}
+$("s1").onclick=function(){S.sub=1;drawTal()};$("s2").onclick=function(){S.sub=2;drawTal()};
+
+// ---------- Administrador ----------
+function drawAdm(){
+  var n=S.talleres.filter(function(t){return t.active}).length;
+  $("astat").textContent=n+" de "+S.talleres.length+" talleres activos";
+  $("alist").innerHTML=S.talleres.map(function(t){return '<div class="rw"><div><strong>'+esc(t.name)+'</strong><div class="who">'+esc(t.email)+' · '+ens(t).length+' servicios cargados</div></div><span class="tag'+(t.active?'':' off')+'">'+(t.active?'Activo':'Dado de baja')+'</span><button class="btn sec sm" data-a="'+t.id+'">'+(t.active?'Dar de baja':'Dar de alta')+'</button></div>'}).join("")}
+$("alist").onclick=function(e){var b=e.target.closest("[data-a]");if(!b)return;var t=S.talleres.filter(function(x){return x.id===b.dataset.a})[0];t.active=!t.active;save();drawAdm()};
+
+// ---------- General ----------
+function fillSel(){$("tsel").innerHTML=S.talleres.map(function(t){return '<option value="'+esc(t.id)+'"'+(t.id===S.tid?' selected':'')+'>'+esc(t.name)+(t.active?'':' (de baja)')+'</option>'}).join("")}
+$("tsel").onchange=function(){S.tid=this.value;S.svc=null;S.day=null;S.hour=null;S.pday=null;$("done").classList.add("hide");render()};
+function render(){
+  var v=S.view,t=T();
+  [1,2,3].forEach(function(n){$("v"+n).setAttribute("aria-selected",v===n)});
+  $("cli").classList.toggle("hide",v!==1);$("tal").classList.toggle("hide",v!==2);$("adm").classList.toggle("hide",v!==3);
+  $("bar").classList.toggle("hide",v===3);
+  fillSel();
+  if(v===1){$("ttl").textContent=t.name;$("sub").textContent="Elegí el servicio, el día y la hora que te quede cómoda.";drawCli()}
+  if(v===2){$("ttl").textContent=t.name;$("sub").textContent="Así ve su panel un taller cuando entra con su usuario.";drawTal()}
+  if(v===3){$("ttl").textContent="Administración";$("sub").textContent="Controlá qué talleres pueden usar el servicio.";drawAdm()}}
+[1,2,3].forEach(function(n){$("v"+n).onclick=function(){S.view=n;render()}});
+render();
+</script>
+</body>
+</html>
