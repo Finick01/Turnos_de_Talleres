@@ -103,13 +103,16 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px d
       <div class="card"><h2>3. Elegí la hora</h2><div class="chips" id="hours"></div><div class="empty" id="hnote">Primero elegí un día.</div></div>
       <div class="card"><h2>4. Tus datos</h2>
         <div class="row"><div><label for="nm">Nombre y apellido</label><input id="nm" autocomplete="name" maxlength="100"></div><div><label for="tel">Teléfono</label><input id="tel" type="tel" autocomplete="tel" maxlength="40"></div></div>
-        <label for="car">Vehículo y patente</label><input id="car" placeholder="Ej: Fiat Cronos AB123CD" maxlength="100">
+        <div class="row"><div><label for="car">Vehículo (marca y modelo)</label><input id="car" placeholder="Ej: Fiat Cronos" maxlength="100"></div><div><label for="plate">Patente</label><input id="plate" placeholder="Ej: AB123CD" maxlength="10" autocapitalize="characters"></div></div>
         <label for="note">¿Qué le pasa al vehículo? (opcional)</label><textarea id="note" rows="3" maxlength="500"></textarea>
         <div class="sel hide" id="resumen"></div>
         <button class="btn" id="go" disabled>Confirmar turno</button>
         <p class="who" style="margin:10px 0 0">Al confirmar, aceptás la <a href="privacidad.html" target="_blank" rel="noopener" style="color:var(--ink)">política de privacidad</a>.</p>
         <div class="empty" id="err" role="alert"></div>
       </div>
+      <div class="card"><h2>¿Ya tenés un turno?</h2><p class="sub" style="margin-top:0">Ingresá tu patente y el teléfono con el que reservaste para cancelarlo o cambiarlo.</p>
+        <div class="row"><div><label for="mp">Patente</label><input id="mp" maxlength="10" autocapitalize="characters"></div><div><label for="mt">Teléfono</label><input id="mt" type="tel" maxlength="40"></div></div>
+        <button class="btn sec" id="mfind">Ver mis turnos</button><div class="empty" id="merr" role="alert"></div><div id="mine"></div></div>
     </div>
     <div class="card ok hide" id="done"></div>
     <p class="foot"><a href="app.html">¿Sos un taller? Ingresá acá</a></p>
@@ -121,6 +124,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px d
     <div id="tur">
       <div class="card"><h2>Turnos por día</h2><div class="chips" id="pdays"></div></div>
       <div class="card"><h2 id="ptitle">Turnos</h2><div id="plist"></div></div>
+      <div class="card"><h2>Historial por patente</h2><div class="chips"><input id="hq" placeholder="Ej: AB123CD" maxlength="10" style="max-width:200px" autocapitalize="characters"><button class="btn sec sm" id="hgo">Buscar</button></div><div id="hres" style="margin-top:10px"></div></div>
       <div class="card"><h2>Resumen para mañana</h2><p class="sub" id="mailsub" style="margin-top:0"></p><pre id="mail"></pre>
         <button class="btn sec" id="copy">Copiar resumen</button> <span id="cok" class="who"></span></div>
     </div>
@@ -198,34 +202,72 @@ $("svc").onclick=function(e){var b=e.target.closest("[data-s]");if(!b)return;S.s
 $("days").onclick=function(e){var b=e.target.closest("[data-d]");if(!b)return;S.day=b.dataset.d;S.hour=null;drawCli()};
 $("hours").onclick=function(e){var b=e.target.closest("[data-h]");if(!b)return;S.hour=+b.dataset.h;drawCli()};
 $("go").onclick=async function(){
-  var nm=$("nm").value.trim(),tel=$("tel").value.trim(),car=$("car").value.trim(),nt=$("note").value.trim();
-  if(!nm||!tel||!car){$("err").textContent="Completá nombre, teléfono y vehículo para confirmar.";return}
+  var nm=$("nm").value.trim(),tel=$("tel").value.trim(),car=$("car").value.trim(),pl=$("plate").value.trim(),nt=$("note").value.trim();
+  if(!nm||!tel||!car||!pl){$("err").textContent="Completá nombre, teléfono, vehículo y patente para confirmar.";return}
   var btn=this;btn.disabled=true;$("err").textContent="";
-  var r=await sb.rpc("book",{p_slug:S.slug,p_date:S.day,p_hour:S.hour,p_svc:S.svc,p_name:nm,p_tel:tel,p_car:car,p_note:nt||null});
-  if(r.error){var m=r.error.message||"";var E={horario_ocupado:"Ese horario se ocupó recién. Elegí otro.",taller_no_disponible:"Este taller no está tomando turnos.",limite_por_telefono:"Ya tenés 3 turnos reservados con este teléfono. Si necesitás otro, comunicate con el taller.",telefono_invalido:"Revisá el teléfono: tiene que tener entre 6 y 15 números.",demasiados_turnos:"Hay muchas reservas en este momento. Probá de nuevo en un rato."},k2=Object.keys(E).filter(function(x){return m.indexOf(x)>-1})[0];$("err").textContent=k2?E[k2]:"No se pudo reservar. Probá con otro horario.";S.hour=null;await loadCli();return}
+  var r=await sb.rpc("book",{p_slug:S.slug,p_date:S.day,p_hour:S.hour,p_svc:S.svc,p_name:nm,p_tel:tel,p_car:car,p_plate:pl,p_note:nt||null});
+  if(r.error){var m=r.error.message||"";var E={horario_ocupado:"Ese horario se ocupó recién. Elegí otro.",taller_no_disponible:"Este taller no está tomando turnos.",limite_por_telefono:"Ya tenés 3 turnos reservados con este teléfono. Si necesitás otro, comunicate con el taller.",telefono_invalido:"Revisá el teléfono: tiene que tener entre 6 y 15 números.",demasiados_turnos:"Hay muchas reservas en este momento. Probá de nuevo en un rato.",patente_invalida:"Revisá la patente: tiene que tener entre 5 y 8 letras y números."},k2=Object.keys(E).filter(function(x){return m.indexOf(x)>-1})[0];$("err").textContent=k2?E[k2]:"No se pudo reservar. Probá con otro horario.";S.hour=null;await loadCli();return}
   var dn=$("done"),dd=S.day,hr=S.hour,sv=S.svc;dn.classList.remove("hide");
-  dn.innerHTML="<h2>Turno confirmado</h2><p style=\"margin:0\">"+esc(nm)+", te esperamos en "+esc(S.t.name)+" el <strong>"+esc(fmt(dd))+" a las "+hh(hr)+"</strong> para "+esc(svcName(sv).toLowerCase())+". Vehículo: "+esc(car)+".</p>";
-  S.svc=null;S.day=null;S.hour=null;["nm","tel","car","note"].forEach(function(i){$(i).value=""});
+  dn.innerHTML="<h2>Turno confirmado</h2><p style=\"margin:0\">"+esc(nm)+", te esperamos en "+esc(S.t.name)+" el <strong>"+esc(fmt(dd))+" a las "+hh(hr)+"</strong> para "+esc(svcName(sv).toLowerCase())+". Vehículo: "+esc(car)+" ("+esc(pl.toUpperCase())+").</p><p class=\"who\" style=\"margin:8px 0 0\">Para cancelarlo o cambiarlo, usá \"¿Ya tenés un turno?\" más abajo con tu patente y tu teléfono.</p>";
+  S.svc=null;S.day=null;S.hour=null;["nm","tel","car","plate","note"].forEach(function(i){$(i).value=""});
   await loadCli();dn.scrollIntoView({behavior:"smooth",block:"center"})};
 
+var MN={list:[],rs:null,rday:null,rhour:null};
+var ME={demasiados_intentos:"Hubo demasiados intentos. Probá de nuevo en unos minutos.",horario_ocupado:"Ese horario se ocupó recién. Elegí otro.",turno_no_encontrado:"No encontramos ese turno con esos datos.",taller_no_disponible:"Este taller no está tomando turnos.",limite_por_telefono:"Ya tenés 3 turnos reservados con este teléfono.",fecha_invalida:"Esa fecha no está disponible.",dia_cerrado:"El taller no atiende ese día.",horario_invalido:"Ese horario no está disponible."};
+function merr(er){var m=(er&&er.message)||"",k=Object.keys(ME).filter(function(x){return m.indexOf(x)>-1})[0];return k?ME[k]:"No se pudo completar. Probá de nuevo."}
+async function findMine(){
+  $("merr").textContent="";
+  var r=await sb.rpc("my_turnos",{p_slug:S.slug,p_plate:$("mp").value,p_tel:$("mt").value});
+  if(r.error){MN.list=[];drawMine();$("merr").textContent=merr(r.error);return}
+  MN.list=r.data||[];MN.rs=null;MN.rday=null;MN.rhour=null;
+  if(!MN.list.length)$("merr").textContent="No encontramos turnos pendientes con esa patente y ese teléfono.";
+  drawMine()}
+function drawMine(){
+  var t=S.t;
+  $("mine").innerHTML=MN.list.map(function(b){
+    var html='<div class="rw"><div><strong>'+esc(fmt(b.date))+', '+hh(b.hour)+'</strong><div class="who">'+esc(svcName(b.svc))+' · '+b.dur+' h</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sec sm" data-rs="'+esc(b.id)+'">Cambiar día u hora</button><button class="btn sec sm" data-cn="'+esc(b.id)+'">Cancelar</button></div></div>';
+    if(MN.rs===b.id){
+      html+='<div class="card" style="margin:10px 0"><h2>Elegí el nuevo día y hora</h2><div class="chips">'+tdays(t).map(function(k){var n=freeHours(t,dayOf(S.busy,k),b.dur).length;return '<button class="chip" '+(n?'':'disabled ')+'aria-pressed="'+(MN.rday===k)+'" data-rd="'+k+'">'+esc(fmt(k,{weekday:"short",day:"numeric",month:"short"}))+'<small>'+(n?n+" horarios libres":"Completo")+'</small></button>'}).join("")+'</div>'+
+      (MN.rday?'<div class="chips" style="margin-top:10px">'+freeHours(t,dayOf(S.busy,MN.rday),b.dur).map(function(h){return '<button class="chip" aria-pressed="'+(MN.rhour===h)+'" data-rh="'+h+'">'+hh(h)+'</button>'}).join("")+'</div>':'')+
+      '<button class="btn" data-rok="'+esc(b.id)+'"'+(MN.rday&&MN.rhour!=null?'':' disabled')+'>Confirmar el cambio</button></div>'}
+    return html}).join("")}
+$("mfind").onclick=findMine;
+$("mine").onclick=async function(e){
+  var rs=e.target.closest("[data-rs]"),cn=e.target.closest("[data-cn]"),rd=e.target.closest("[data-rd]"),rh=e.target.closest("[data-rh]"),ok=e.target.closest("[data-rok]");
+  if(rs){MN.rs=MN.rs===rs.dataset.rs?null:rs.dataset.rs;MN.rday=null;MN.rhour=null;drawMine();return}
+  if(rd){MN.rday=rd.dataset.rd;MN.rhour=null;drawMine();return}
+  if(rh){MN.rhour=+rh.dataset.rh;drawMine();return}
+  if(cn){if(!confirm("¿Cancelar este turno?"))return;
+    var r=await sb.rpc("cancel_turno",{p_slug:S.slug,p_id:cn.dataset.cn,p_plate:$("mp").value,p_tel:$("mt").value});
+    if(r.error||!r.data){$("merr").textContent=r.error?merr(r.error):"No se pudo cancelar el turno.";return}
+    await loadCli();await findMine();$("merr").textContent="Turno cancelado.";return}
+  if(ok){var r2=await sb.rpc("reschedule_turno",{p_slug:S.slug,p_id:ok.dataset.rok,p_plate:$("mp").value,p_tel:$("mt").value,p_date:MN.rday,p_hour:MN.rhour});
+    if(r2.error){$("merr").textContent=merr(r2.error);await loadCli();MN.rhour=null;drawMine();return}
+    await loadCli();await findMine();$("merr").textContent="Listo, cambiamos tu turno.";return}};
+
 // ---------- Taller ----------
+var EST={pendiente:"Pendiente",confirmado:"Confirmado",en_taller:"En el taller",listo:"Listo",no_vino:"No vino",cancelado:"Cancelado"};
+function act(b){return b.estado!=="cancelado"}
+function estSel(b){return '<select data-st="'+esc(b.id)+'" aria-label="Estado del turno" style="margin-left:6px;padding:3px 6px"'+(b.estado==="cancelado"?' disabled':'')+'>'+Object.keys(EST).map(function(k){return '<option value="'+k+'"'+(b.estado===k?' selected':'')+'>'+EST[k]+'</option>'}).join("")+'</select>'}
 async function refreshTal(notify){
   var d1=new Date();d1.setDate(d1.getDate()+1);var d2=new Date();d2.setDate(d2.getDate()+29);
   var r=await sb.from("turnos").select("*").gte("date",key(d1)).lte("date",key(d2)).order("date").order("hour");
   if(r.error||!S.me)return;
-  var old={};S.turnos.forEach(function(b){old[b.id]=1});
-  var nu=(r.data||[]).filter(function(b){return !old[b.id]});
+  var old={};S.turnos.forEach(function(b){old[b.id]=b.estado});
+  var nu=(r.data||[]).filter(function(b){return !(b.id in old)});
+  var cn=(r.data||[]).filter(function(b){return (b.id in old)&&old[b.id]!=="cancelado"&&b.estado==="cancelado"});
   S.turnos=r.data||[];
   if(S.sub===1)drawTur();
-  if(notify&&nu.length)showNew(nu)}
+  if(notify&&(nu.length||cn.length))showNew(nu,cn)}
 async function loadTal(){await refreshTal(false);head(S.me.name,"Tu panel de turnos.");drawTal();startRT()}
 function beep(){try{var c=window._ac;if(!c)return;c.resume();var o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=.15;o.start();o.stop(c.currentTime+.3)}catch(e){}}
 document.addEventListener("click",function(){try{window._ac=window._ac||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}});
-function showNew(nu){
-  var n=$("nuevo");n.classList.remove("hide");
-  n.innerHTML="<h2>"+(nu.length===1?"Llegó un turno nuevo":"Llegaron "+nu.length+" turnos nuevos")+"</h2>"+nu.slice(0,3).map(function(b){return "<div>"+esc(fmt(b.date,{weekday:"long",day:"numeric",month:"long"}))+", "+hh(b.hour)+" · "+esc(svcName(b.svc))+" · "+esc(b.name)+" · "+esc(b.car)+"</div>"}).join("")+(nu.length>3?"<div class=\"who\">y "+(nu.length-3)+" más</div>":"")+"<button class=\"btn sec sm\" id=\"nuok\" style=\"margin-top:10px\">Entendido</button>";
+function showNew(nu,cn){
+  cn=cn||[];var n=$("nuevo");n.classList.remove("hide");
+  function ln(b){return "<div>"+esc(fmt(b.date,{weekday:"long",day:"numeric",month:"long"}))+", "+hh(b.hour)+" · "+esc(svcName(b.svc))+" · "+esc(b.name)+" · "+esc(b.car)+"</div>"}
+  n.innerHTML=(nu.length?"<h2>"+(nu.length===1?"Llegó un turno nuevo":"Llegaron "+nu.length+" turnos nuevos")+"</h2>"+nu.slice(0,3).map(ln).join("")+(nu.length>3?"<div class=\"who\">y "+(nu.length-3)+" más</div>":""):"")+(cn.length?"<h2"+(nu.length?" style=\"margin-top:12px\"":"")+">"+(cn.length===1?"Un cliente canceló o cambió un turno":cn.length+" turnos cancelados o cambiados por clientes")+"</h2>"+cn.slice(0,3).map(ln).join(""):"")+"<button class=\"btn sec sm\" id=\"nuok\" style=\"margin-top:10px\">Entendido</button>";
   $("nuok").onclick=function(){n.classList.add("hide");document.title="TurnoTaller"};
-  document.title="(Nuevo) TurnoTaller";beep()}
+  document.title="(Novedades) TurnoTaller";beep()}
 var RT=null,POLL=null;
 function vis(){if(!document.hidden&&S.me)refreshTal(true)}
 function stopRT(){if(RT){sb.removeChannel(RT);RT=null}clearInterval(POLL);document.removeEventListener("visibilitychange",vis)}
@@ -234,7 +276,7 @@ function startRT(){stopRT();
   POLL=setInterval(function(){refreshTal(true)},30000);
   document.addEventListener("visibilitychange",vis)}
 function mailText(t,k){
-  var l=dayOf(S.turnos,k);
+  var l=dayOf(S.turnos,k).filter(act);
   var h="Asunto: Turnos de mañana, "+fmt(k)+" ("+l.length+(l.length===1?" trabajo":" trabajos")+")\n\n";
   if(!l.length)return h+"No hay turnos cargados para ese día.";
   return h+l.map(function(b){return hh(b.hour)+" a "+hh(b.hour+b.dur)+"  "+svcName(b.svc)+"\n       "+b.name+" · "+b.tel+"\n       "+b.car+(b.note?"\n       Nota: "+b.note:"")}).join("\n\n")}
@@ -246,14 +288,24 @@ function drawTur(){
   var t=mk(S.me),ds=tdays(t);
   if(!ds.length){$("pdays").innerHTML='<div class="empty">Marcá al menos un día de atención en Configuración.</div>';$("plist").innerHTML="";$("mail").textContent="";$("mailsub").textContent="";return}
   if(ds.indexOf(S.pday)<0)S.pday=ds[0];
-  $("pdays").innerHTML=ds.map(function(k){return '<button class="chip" aria-pressed="'+(S.pday===k)+'" data-d="'+k+'">'+esc(fmt(k,{weekday:"short",day:"numeric",month:"short"}))+'<small>'+dayOf(S.turnos,k).length+' turnos</small></button>'}).join("");
+  $("pdays").innerHTML=ds.map(function(k){return '<button class="chip" aria-pressed="'+(S.pday===k)+'" data-d="'+k+'">'+esc(fmt(k,{weekday:"short",day:"numeric",month:"short"}))+'<small>'+dayOf(S.turnos,k).filter(act).length+' turnos</small></button>'}).join("");
   var l=dayOf(S.turnos,S.pday);
   $("ptitle").textContent="Turnos del "+fmt(S.pday);
-  $("plist").innerHTML=l.length?l.map(function(b){return '<div class="t"><div class="hr">'+hh(b.hour)+'</div><div><span class="tag">'+esc(svcName(b.svc))+'</span> <span class="who">'+b.dur+' h</span><div>'+esc(b.name)+' · '+esc(b.tel)+'</div><div class="who">'+esc(b.car)+(b.note?' · '+esc(b.note):'')+'</div>'+wa(b)+'</div><button class="x" data-x="'+esc(b.id)+'">Cancelar</button></div>'}).join(""):'<div class="empty">Sin turnos para este día.</div>';
+  $("plist").innerHTML=l.length?l.map(function(b){var c=b.estado==="cancelado";return '<div class="t"'+(c?' style="opacity:.55"':'')+'><div class="hr">'+hh(b.hour)+'</div><div><span class="tag">'+esc(svcName(b.svc))+'</span> <span class="who">'+b.dur+' h</span> '+estSel(b)+'<div>'+esc(b.name)+' · '+esc(b.tel)+'</div><div class="who">'+esc(b.car)+(b.plate?' · '+esc(b.plate):'')+(b.note?' · '+esc(b.note):'')+'</div>'+(c?'':wa(b))+(b.plate?'<button class="x" data-hist="'+esc(b.plate)+'">Ver historial de la patente</button>':'')+'</div>'+(c?'<span></span>':'<button class="x" data-x="'+esc(b.id)+'">Cancelar</button>')+'</div>'}).join(""):'<div class="empty">Sin turnos para este día.</div>';
   $("mail").textContent=mailText(t,ds[0]);
   $("mailsub").textContent="Turnos del "+fmt(ds[0])+". Cuando tengamos dominio propio, este resumen te va a llegar solo por mail todos los días a las 20:00."}
 $("pdays").onclick=function(e){var b=e.target.closest("[data-d]");if(!b)return;S.pday=b.dataset.d;drawTur()};
-$("plist").onclick=async function(e){var b=e.target.closest("[data-x]");if(!b)return;if(!confirm("¿Cancelar este turno?"))return;var r=await sb.from("turnos").delete().eq("id",b.dataset.x);if(r.error){msg("No se pudo cancelar el turno.",1);return}S.turnos=S.turnos.filter(function(x){return x.id!==b.dataset.x});drawTur()};
+$("plist").onclick=async function(e){
+  var h=e.target.closest("[data-hist]");if(h){$("hq").value=h.dataset.hist;histSearch();$("hq").scrollIntoView({behavior:"smooth",block:"center"});return}
+  var b=e.target.closest("[data-x]");if(!b)return;if(!confirm("¿Cancelar este turno? Queda registrado como cancelado y el horario se libera."))return;
+  var r=await sb.from("turnos").update({estado:"cancelado"}).eq("id",b.dataset.x);if(r.error){msg("No se pudo cancelar el turno.",1);return}
+  S.turnos.forEach(function(x){if(x.id===b.dataset.x)x.estado="cancelado"});drawTur()};
+$("plist").onchange=async function(e){var s2=e.target.closest("[data-st]");if(!s2)return;var r=await sb.from("turnos").update({estado:s2.value}).eq("id",s2.dataset.st);if(r.error){msg("No se pudo cambiar el estado.",1);drawTur();return}S.turnos.forEach(function(x){if(x.id===s2.dataset.st)x.estado=s2.value});drawTur()};
+async function histSearch(){var p=$("hq").value.toUpperCase().replace(/[^A-Z0-9]/g,"");if(p.length<5){$("hres").innerHTML='<div class="empty">Escribí la patente completa.</div>';return}
+  var r=await sb.from("turnos").select("*").eq("plate",p).order("date",{ascending:false}).order("hour",{ascending:false}).limit(50);
+  if(r.error){$("hres").innerHTML='<div class="empty">No se pudo buscar.</div>';return}
+  var l=r.data||[];$("hres").innerHTML=l.length?l.map(function(b){return '<div class="rw"><div><strong>'+esc(fmt(b.date,{day:"numeric",month:"long",year:"numeric"}))+', '+hh(b.hour)+'</strong><div class="who">'+esc(svcName(b.svc))+' · '+esc(b.name)+' · '+esc(b.car)+(b.note?' · '+esc(b.note):'')+'</div></div><span class="tag">'+esc(EST[b.estado]||b.estado)+'</span></div>'}).join(""):'<div class="empty">No hay turnos registrados para esa patente.</div>'}
+$("hgo").onclick=histSearch;$("hq").addEventListener("keydown",function(e){if(e.key==="Enter")histSearch()});
 $("copy").onclick=function(){var x=$("mail").textContent;try{navigator.clipboard.writeText(x).then(function(){$("cok").textContent="Copiado"},function(){$("cok").textContent="No se pudo copiar"})}catch(e){$("cok").textContent="No se pudo copiar"}};
 function link(slug){return location.origin+location.pathname+"?t="+slug}
 $("copylink").onclick=function(){try{navigator.clipboard.writeText(link(S.me.slug)).then(function(){$("clok").textContent="Copiado"},function(){$("clok").textContent="No se pudo copiar"})}catch(e){$("clok").textContent="No se pudo copiar"}};
