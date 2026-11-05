@@ -81,7 +81,8 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px d
   <div class="empty" id="msg" role="alert"></div>
 
   <section id="login" class="hide">
-    <div class="card" id="lg"><h2>Ingresar</h2>
+    <div class="card" id="cl0"><h2>¿Querés sacar un turno?</h2><p class="sub" style="margin-top:0">Elegí el taller y reservá el día y la hora que te queden cómodos.</p><button class="btn" id="gopick" style="margin-top:0">Quiero sacar un turno</button></div>
+    <div class="card" id="lg"><h2>Soy un taller: ingresar</h2>
       <label for="le">Mail</label><input id="le" type="email" autocomplete="username">
       <label for="lp">Contraseña</label><input id="lp" type="password" autocomplete="current-password">
       <label class="ck" style="margin-top:8px;font-size:15px"><input type="checkbox" data-show="lp"> Mostrar contraseña</label>
@@ -93,6 +94,11 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px d
       <label class="ck" style="margin-top:8px;font-size:15px"><input type="checkbox" data-show="sp,sq"> Mostrar contraseña</label>
       <label for="sq">Repetir contraseña</label><input id="sq" type="password" autocomplete="new-password">
       <button class="btn" id="sgo">Crear administrador</button></div>
+  </section>
+
+  <section id="pick" class="hide">
+    <div class="card"><h2>Elegí el taller</h2><p class="sub" style="margin-top:0">Estos son los talleres que hoy están tomando turnos.</p>
+      <div id="tlist"></div><div class="empty" id="pnote"></div><button class="btn sec" id="pback">Volver</button></div>
   </section>
 
   <section id="cli" class="hide">
@@ -133,6 +139,10 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px d
         <div class="chips"><div><label for="agf">Trabajo</label><select id="agf"></select></div><div><label for="agr">Período</label><select id="agr"><option value="7">Próximos 7 días</option><option value="30">Próximos 30 días</option><option value="60" selected>Todo lo reservado (60 días)</option></select></div></div>
         <div id="agsum" style="margin-top:14px"></div></div>
       <div class="card"><div id="aglist"></div><button class="btn sec" id="agcopy">Copiar lista</button> <span id="agok" class="who"></span></div>
+      <div class="card"><h2>Cancelar turnos en bloque</h2><p class="sub" style="margin-top:0">Por ejemplo, si tenés que cerrar unos días. Al terminar te armo los mensajes de WhatsApp para avisarles a los clientes.</p>
+        <div class="chips"><div><label for="bk1" class="who" style="margin:0">Desde</label><input id="bk1" type="date"></div><div><label for="bk2" class="who" style="margin:0">Hasta (vacío: todos los de más adelante)</label><input id="bk2" type="date"></div></div>
+        <label class="ck" style="margin-top:12px"><input type="checkbox" id="bkoff"> Cerrar también esos días para nuevas reservas (hay que completar “Hasta”)</label>
+        <button class="btn sec" id="bkgo">Cancelar los turnos de esas fechas</button><div id="bkres" style="margin-top:12px" role="status"></div></div>
     </div>
     <div id="cfg">
       <div class="card"><h2>Link para tus clientes</h2><p class="sub" style="margin-top:0">Compartilo por WhatsApp o ponelo en el taller.</p><div class="lnk" id="mylink"></div><div id="qr" style="width:170px;margin:12px 0"></div><button class="btn sec" id="copylink">Copiar link</button> <button class="btn sec" id="printqr">Imprimir cartel con QR</button> <span id="clok" class="who"></span></div>
@@ -169,9 +179,9 @@ function fmt(k,o){var p=k.split("-");return new Date(+p[0],+p[1]-1,+p[2]).toLoca
 function hh(h){return String(h).padStart(2,"0")+":00"}
 function svcName(id){for(var i=0;i<SVC.length;i++)if(SVC[i].id===id)return SVC[i].n;return id}
 function msg(t,bad){var m=$("msg");m.textContent=t||"";m.style.color=bad?"var(--bad)":"var(--mute)"}
-function show(v){["login","cli","tal","adm"].forEach(function(n){$(n).classList.toggle("hide",n!==v)})}
+function show(v){["login","pick","cli","tal","adm"].forEach(function(n){$(n).classList.toggle("hide",n!==v)})}
 function head(a,b){$("ttl").textContent=a;$("sub").textContent=b||""}
-function mk(row){var c=row.config||{};return{name:row.name,active:row.active,svc:c.svc||{},days:c.days||[],open:c.open||8,close:c.close||17,cap:c.cap||1,brk:c.brk||null,off:c.off||[]}}
+function mk(row){var c=row.config||{};return{name:row.name,active:row.active,svc:c.svc||{},days:c.days||[],open:c.open||8,close:c.close||17,cap:c.cap||1,brk:c.brk||null,off:c.off||[],auto:c.auto!==false,wa:c.wa||""}}
 function ens(t){return SVC.filter(function(s){return t.svc[s.id]})}
 function hrs(t){var o=[];for(var h=t.open;h<t.close;h++)o.push(h);return o}
 function tdays(t,hoy){var o=[],d=new Date();d.setHours(12,0,0,0);if(hoy)d.setDate(d.getDate()-1);for(var i=0;i<28&&o.length<10;i++){d.setDate(d.getDate()+1);var k=key(d);if(t.days.indexOf(d.getDay())>-1&&!isOff(t,k))o.push(k)}return o}
@@ -215,6 +225,9 @@ $("go").onclick=async function(){
   if(r.error){var m=r.error.message||"";var E={horario_ocupado:"Ese horario se ocupó recién. Elegí otro.",taller_no_disponible:"Este taller no está tomando turnos.",limite_por_telefono:"Ya tenés 3 turnos reservados con este teléfono. Si necesitás otro, comunicate con el taller.",telefono_invalido:"Revisá el teléfono: tiene que tener entre 6 y 15 números.",demasiados_turnos:"Hay muchas reservas en este momento. Probá de nuevo en un rato.",patente_invalida:"Revisá la patente: tiene que tener entre 5 y 8 letras y números."},k2=Object.keys(E).filter(function(x){return m.indexOf(x)>-1})[0];$("err").textContent=k2?E[k2]:"No se pudo reservar. Probá con otro horario.";S.hour=null;await loadCli();return}
   var dn=$("done"),dd=S.day,hr=S.hour,sv=S.svc;dn.classList.remove("hide");
   dn.innerHTML="<h2>Turno confirmado</h2><p style=\"margin:0\">"+esc(nm)+", te esperamos en "+esc(S.t.name)+" el <strong>"+esc(fmt(dd))+" a las "+hh(hr)+"</strong> para "+esc(svcName(sv).toLowerCase())+". Vehículo: "+esc(car)+" ("+esc(pl.toUpperCase())+").</p><p class=\"who\" style=\"margin:8px 0 0\">Para cancelarlo o cambiarlo, usá \"¿Ya tenés un turno?\" más abajo con tu patente y tu teléfono.</p>";
+  var wn=waNum(S.t.wa);
+  if(wn){var wt="Hola, soy "+nm+". Reservé turno en "+S.t.name+" para el "+fmt(dd,{weekday:"long",day:"numeric",month:"long"})+" a las "+hh(hr)+" ("+svcName(sv).toLowerCase()+") con mi "+car+" "+pl.toUpperCase()+".";
+    dn.innerHTML+='<a class="btn" style="display:inline-block;text-decoration:none;margin-top:12px" target="_blank" rel="noopener" href="https://wa.me/'+wn+'?text='+encodeURIComponent(wt)+'">Avisar al taller por WhatsApp</a>'}
   S.svc=null;S.day=null;S.hour=null;["nm","tel","car","plate","note"].forEach(function(i){$(i).value=""});
   await loadCli();dn.scrollIntoView({behavior:"smooth",block:"center"})};
 
@@ -330,7 +343,8 @@ function drawCfg(){
   '<div class="card"><h2>Horario y capacidad</h2><div class="chips"><div><label for="op">Abrimos</label><select id="op" data-op="1">'+opts(6,20,t.open,hh)+'</select></div><div><label for="cl">Cerramos</label><select id="cl" data-cl="1">'+opts(7,22,t.close,hh)+'</select></div><div><label for="cp">Autos al mismo tiempo</label><select id="cp" data-cp="1">'+opts(1,5,t.cap,String)+'</select></div></div></div>'+cfgExtra(t)}
 function cfgExtra(t){
   var b=t.brk,off=t.off||[];
-  return '<div class="card"><h2>Pausa y días cerrados</h2>'+
+  return '<div class="card"><h2>Confirmación y contacto</h2><label class="ck"><input type="checkbox" data-au="1"'+(t.auto?' checked':'')+'> Confirmar los turnos automáticamente</label><p class="who" style="margin:4px 0 12px 28px">Si lo desmarcás, los turnos nuevos quedan como pendientes hasta que los confirmes vos.</p><label for="cw">WhatsApp del taller (lo ven tus clientes)</label><input id="cw" type="tel" maxlength="30" placeholder="Ej: 223 555-1234" value="'+esc(t.wa)+'"><p class="who" style="margin-top:6px">Con este número, después de reservar le aparece al cliente un botón para avisarte por WhatsApp.</p></div>'+
+  '<div class="card"><h2>Pausa y días cerrados</h2>'+
   '<div class="chips"><div><label for="bf">Pausa diaria (almuerzo)</label><select id="bf" data-bf="1"><option value="">Sin pausa</option>'+opts(t.open,t.close-1,b?b.from:-1,hh)+'</select></div>'+(b?'<div><label for="bt">Reabrimos a las</label><select id="bt" data-bt="1">'+opts(b.from+1,t.close,b.to,hh)+'</select></div>':'')+'</div>'+
   '<label style="margin-top:18px">Días cerrados (feriados, vacaciones)</label><div class="chips"><div><label for="of1" class="who" style="margin:0">Desde</label><input id="of1" type="date"></div><div><label for="of2" class="who" style="margin:0">Hasta (opcional)</label><input id="of2" type="date"></div></div>'+
   '<button class="btn sec sm" style="margin-top:10px" data-addoff="1">Agregar días cerrados</button>'+
@@ -344,6 +358,7 @@ $("tcfg").addEventListener("change",async function(e){
   else if(d.op){c.open=+el.value;if(c.close<=c.open)c.close=c.open+1}
   else if(d.cl){c.close=+el.value;if(c.open>=c.close)c.open=c.close-1}
   else if(d.cp)c.cap=+el.value;
+  else if(d.au){c.auto=el.checked}
   else if(d.bf){if(el.value==="")delete c.brk;else{var f=+el.value;c.brk={from:f,to:Math.max(f+1,(c.brk&&c.brk.to)||f+1)}}}
   else if(d.bt&&c.brk){c.brk.to=Math.max(+el.value,c.brk.from+1)}
   else return;
@@ -354,7 +369,7 @@ $("tcfg").addEventListener("click",async function(e){
   else c.off.splice(+b.dataset.rm,1);
   drawCfg();await saveCfg({config:c})});
 $("printqr").onclick=printPoster;
-var nameT;$("tcfg").addEventListener("input",function(e){if(e.target.id!=="cn")return;S.me.name=e.target.value.trim()||"Taller sin nombre";$("ttl").textContent=S.me.name;clearTimeout(nameT);nameT=setTimeout(function(){saveCfg({name:S.me.name})},700)});
+var nameT;$("tcfg").addEventListener("input",function(e){if(e.target.id==="cw"){S.me.config.wa=e.target.value.trim();clearTimeout(nameT);nameT=setTimeout(function(){saveCfg({config:S.me.config})},700);return}if(e.target.id!=="cn")return;S.me.name=e.target.value.trim()||"Taller sin nombre";$("ttl").textContent=S.me.name;clearTimeout(nameT);nameT=setTimeout(function(){saveCfg({name:S.me.name})},700)});
 function agList(){var f=$("agf").value,n=+$("agr").value,d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+n);var end=key(d),today=key(new Date());return S.turnos.filter(function(b){return act(b)&&b.date>=today&&b.date<=end&&(!f||b.svc===f)})}
 function agGroups(l){var g={};l.forEach(function(b){(g[b.date]=g[b.date]||[]).push(b)});return g}
 function drawAgd(){
@@ -368,6 +383,25 @@ function agText(){var l=agList(),g=agGroups(l),by={};l.forEach(function(b){by[b.
   o.push("Resumen: "+(Object.keys(by).map(function(k){return svcName(k)+" "+by[k]}).join(", ")||"sin turnos"));return o.join("\n")}
 $("agf").innerHTML='<option value="">Todos los trabajos</option>'+SVC.map(function(s){return '<option value="'+s.id+'">'+esc(s.n)+'</option>'}).join("");
 $("agf").onchange=drawAgd;$("agr").onchange=drawAgd;
+$("bkgo").onclick=async function(){
+  var f=$("bk1").value,t2=$("bk2").value,r=$("bkres");
+  if(!f){r.innerHTML='<div class="empty">Elegí desde qué fecha querés cancelar.</div>';return}
+  if(t2&&t2<f){r.innerHTML='<div class="empty">La fecha “Hasta” no puede ser anterior a “Desde”.</div>';return}
+  var l=S.turnos.filter(function(b){return act(b)&&b.date>=f&&(!t2||b.date<=t2)}),off=$("bkoff").checked&&!!t2;
+  if(!l.length&&!off){r.innerHTML='<div class="empty">No hay turnos para cancelar en esas fechas.</div>';return}
+  var D={day:"numeric",month:"long",year:"numeric"};
+  if(!confirm("Se van a cancelar "+l.length+(l.length===1?" turno":" turnos")+(t2?" entre el "+fmt(f,D)+" y el "+fmt(t2,D):" desde el "+fmt(f,D)+" en adelante")+(off?" y esos días van a quedar cerrados para nuevas reservas":"")+". ¿Seguimos?"))return;
+  this.disabled=true;
+  var ids=l.map(function(b){return b.id}),bad=false;
+  for(var i=0;i<ids.length;i+=40){var u=await sb.from("turnos").update({estado:"cancelado"}).in("id",ids.slice(i,i+40));if(u.error){bad=true;break}}
+  if(bad){r.innerHTML='<div class="empty">No se pudieron cancelar todos los turnos. Actualizá la página y revisá cuáles quedaron.</div>';this.disabled=false;await refreshTal(false);return}
+  l.forEach(function(b){b.estado="cancelado"});
+  if(off){var c=S.me.config;c.off=c.off||[];c.off.push({from:f,to:t2});c.off.sort(function(a,b){return a.from<b.from?-1:1});await saveCfg({config:c})}
+  this.disabled=false;
+  var nota=($("bkoff").checked&&!t2)?'<div class="who" style="margin-top:6px">No se cerraron los días: para eso hay que completar “Hasta”.</div>':"";
+  r.innerHTML='<div class="ok" style="padding:10px 12px;background:var(--bg);border-radius:8px"><strong>Se cancelaron '+l.length+(l.length===1?' turno':' turnos')+'.</strong>'+(off?' Esos días quedaron cerrados.':'')+nota+'</div>'+
+  (l.length?'<p class="who" style="margin:12px 0 4px">Avisales a los clientes:</p>'+l.map(function(b){var n=waNum(b.tel),m="Hola "+b.name.split(" ")[0]+", tuvimos que cancelar tu turno del "+fmt(b.date,{weekday:"long",day:"numeric",month:"long"})+" a las "+hh(b.hour)+" en "+S.me.name+". Disculpá las molestias. Escribinos y lo reprogramamos.";return '<div class="rw"><div><strong>'+esc(b.name)+'</strong><div class="who">'+esc(fmt(b.date,{weekday:"long",day:"numeric",month:"long"}))+', '+hh(b.hour)+' · '+esc(b.tel)+'</div></div>'+(n?'<a class="btn sec sm" style="text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/'+n+'?text='+encodeURIComponent(m)+'">Avisar por WhatsApp</a>':'<span class="who">Sin código de área: llamalo</span>')+'</div>'}).join(""):'');
+  drawAgd()};
 $("agcopy").onclick=function(){try{navigator.clipboard.writeText(agText()).then(function(){$("agok").textContent="Copiado"},function(){$("agok").textContent="No se pudo copiar"})}catch(e){$("agok").textContent="No se pudo copiar"}};
 function drawTal(){
   $("tur").classList.toggle("hide",S.sub!==1);$("agd").classList.toggle("hide",S.sub!==3);$("cfg").classList.toggle("hide",S.sub!==2);
@@ -420,7 +454,13 @@ $("out1").onclick=out;$("out2").onclick=out;
 async function showLogin(){
   show("login");head("TurnoTaller","Ingresá con tu cuenta.");
   var r=await sb.rpc("needs_setup");var setup=r.data===true;
-  $("su").classList.toggle("hide",!setup);$("lg").classList.toggle("hide",setup)}
+  $("su").classList.toggle("hide",!setup);$("lg").classList.toggle("hide",setup);$("cl0").classList.toggle("hide",setup)}
+async function showPick(){show("pick");head("TurnoTaller","Elegí el taller donde querés sacar tu turno.");msg("");$("tlist").innerHTML="";$("pnote").textContent="Cargando talleres...";
+  var r=await sb.rpc("list_talleres");
+  if(r.error){$("pnote").textContent="No se pudieron cargar los talleres. Probá de nuevo.";return}
+  var l=r.data||[];$("pnote").textContent=l.length?"":"Por ahora no hay talleres tomando turnos.";
+  $("tlist").innerHTML=l.map(function(t){return '<a class="rw" style="text-decoration:none;color:var(--ink)" href="'+esc(location.pathname)+'?t='+encodeURIComponent(t.slug)+'"><strong>'+esc(t.name)+'</strong><span class="btn sec sm" style="margin:0">Sacar turno</span></a>'}).join("")}
+$("gopick").onclick=showPick;$("pback").onclick=showLogin;
 $("lgo").onclick=async function(){
   var e=$("le").value.trim(),p=$("lp").value;if(!e||!p){msg("Ingresá tu mail y tu contraseña.",1);return}
   this.disabled=true;msg("");
