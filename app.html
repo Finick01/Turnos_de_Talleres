@@ -346,7 +346,7 @@ function drawCfg(){
 function cfgCustom(t){
   var l=t.lbl||{},ids=Object.keys(l);
   return '<div style="margin-top:18px;padding-top:12px;border-top:2px solid var(--line)"><strong>Tus propios trabajos</strong><p class="who" style="margin:2px 0 8px">Agregá los trabajos que hace tu taller con el nombre, la descripción y la duración que quieras. Tus clientes los ven tal cual.</p>'+
-  (ids.length?ids.map(function(id){return '<div class="rw"><div style="flex:1;min-width:200px"><strong>'+esc(l[id].n)+'</strong>'+(l[id].d?'<div class="who">'+esc(l[id].d)+'</div>':'')+'</div><span class="who">Dura aprox.</span><select data-du="'+esc(id)+'" aria-label="Duración de '+esc(l[id].n)+'">'+opts(1,8,t.svc[id]||1,function(n){return n+" h"})+'</select><button class="x" data-rmsv="'+esc(id)+'">Quitar</button></div>'}).join(""):'<div class="empty">Todavía no agregaste trabajos propios.</div>')+
+  (ids.length?ids.map(function(id){var on=!!t.svc[id];return '<div class="rw"><label class="ck"><input type="checkbox" data-sv="'+esc(id)+'"'+(on?' checked':'')+'><span><strong>'+esc(l[id].n)+'</strong>'+(l[id].d?'<span class="who" style="display:block">'+esc(l[id].d)+'</span>':'')+'</span></label><span class="who">Dura aprox.</span><select data-du="'+esc(id)+'" aria-label="Duración de '+esc(l[id].n)+'"'+(on?'':' disabled')+'>'+opts(1,8,t.svc[id]||l[id].h||1,function(n){return n+" h"})+'</select><button class="x" data-rmsv="'+esc(id)+'">Quitar</button></div>'}).join(""):'<div class="empty">Todavía no agregaste trabajos propios.</div>')+
   '<div class="chips" style="margin-top:12px;align-items:flex-end"><div style="flex:1;min-width:200px"><label for="ns" class="who" style="margin:0">Nombre del trabajo</label><input id="ns" maxlength="60" placeholder="Ej: Cambio de embrague"></div><div style="flex:2;min-width:220px"><label for="nd" class="who" style="margin:0">Descripción (opcional)</label><input id="nd" maxlength="120" placeholder="Ej: Incluye kit y mano de obra"></div><div><label for="nh" class="who" style="margin:0">Dura aprox.</label><select id="nh">'+opts(1,8,1,function(n){return n+" h"})+'</select></div></div>'+
   '<button class="btn sec sm" style="margin-top:10px" data-addsv="1">Agregar trabajo</button></div>'}
 function cfgExtra(t){
@@ -360,8 +360,8 @@ function cfgExtra(t){
 async function saveCfg(fields){var r=await sb.from("talleres").update(fields).eq("id",S.me.id);$("cfgok").textContent=r.error?"No se pudo guardar. Probá de nuevo.":"Cambios guardados"}
 $("tcfg").addEventListener("change",async function(e){
   var c=S.me.config,el=e.target,d=el.dataset;c.svc=c.svc||{};c.days=c.days||[];
-  if(d.sv){if(el.checked)c.svc[d.sv]=c.svc[d.sv]||1;else delete c.svc[d.sv]}
-  else if(d.du)c.svc[d.du]=+el.value;
+  if(d.sv){var lb=c.lbl&&c.lbl[d.sv];if(el.checked)c.svc[d.sv]=c.svc[d.sv]||(lb&&lb.h)||1;else{if(lb)lb.h=c.svc[d.sv]||lb.h;delete c.svc[d.sv]}}
+  else if(d.du){c.svc[d.du]=+el.value;if(c.lbl&&c.lbl[d.du])c.lbl[d.du].h=+el.value}
   else if(d.dy){var n=+d.dy,i=c.days.indexOf(n);if(el.checked&&i<0)c.days.push(n);if(!el.checked&&i>-1)c.days.splice(i,1);c.days.sort()}
   else if(d.op){c.open=+el.value;if(c.close<=c.open)c.close=c.open+1}
   else if(d.cl){c.close=+el.value;if(c.open>=c.close)c.open=c.close-1}
@@ -378,7 +378,7 @@ $("tcfg").addEventListener("click",async function(e){
     c.lbl=c.lbl||{};c.svc=c.svc||{};
     if(Object.keys(c.lbl).length>=20){$("cfgok").textContent="Llegaste al máximo de 20 trabajos propios.";return}
     var nid="c"+Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36);
-    c.lbl[nid]={n:nn.slice(0,60),d:nd.slice(0,120)};c.svc[nid]=nh;drawCfg();await saveCfg({config:c});return}
+    c.lbl[nid]={n:nn.slice(0,60),d:nd.slice(0,120),h:nh};c.svc[nid]=nh;drawCfg();await saveCfg({config:c});return}
   if(b.dataset.rmsv){if(!confirm("¿Quitar este trabajo? Los turnos que ya se tomaron se conservan."))return;
     if(c.lbl)delete c.lbl[b.dataset.rmsv];if(c.svc)delete c.svc[b.dataset.rmsv];drawCfg();await saveCfg({config:c});return}
   c.off=c.off||[];
