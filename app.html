@@ -177,12 +177,14 @@ function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"
 function key(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function fmt(k,o){var p=k.split("-");return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString("es-AR",o||{weekday:"long",day:"numeric",month:"long"})}
 function hh(h){return String(h).padStart(2,"0")+":00"}
-function svcName(id){for(var i=0;i<SVC.length;i++)if(SVC[i].id===id)return SVC[i].n;return id}
+function LBL(){return (S.me&&S.me.config&&S.me.config.lbl)||(S.t&&S.t.lbl)||{}}
+function svcName(id,b){if(b&&b.svc_name)return b.svc_name;var l=LBL()[id];if(l&&l.n)return l.n;for(var i=0;i<SVC.length;i++)if(SVC[i].id===id)return SVC[i].n;return id}
+function allSvc(t){var o=SVC.slice(),l=t.lbl||{};Object.keys(l).forEach(function(id){if(!SVC.some(function(s){return s.id===id}))o.push({id:id,n:l[id].n,d:l[id].d||""})});return o}
 function msg(t,bad){var m=$("msg");m.textContent=t||"";m.style.color=bad?"var(--bad)":"var(--mute)"}
 function show(v){["login","pick","cli","tal","adm"].forEach(function(n){$(n).classList.toggle("hide",n!==v)})}
 function head(a,b){$("ttl").textContent=a;$("sub").textContent=b||""}
-function mk(row){var c=row.config||{};return{name:row.name,active:row.active,svc:c.svc||{},days:c.days||[],open:c.open||8,close:c.close||17,cap:c.cap||1,brk:c.brk||null,off:c.off||[],auto:c.auto!==false,wa:c.wa||""}}
-function ens(t){return SVC.filter(function(s){return t.svc[s.id]})}
+function mk(row){var c=row.config||{};return{name:row.name,active:row.active,svc:c.svc||{},days:c.days||[],open:c.open||8,close:c.close||17,cap:c.cap||1,brk:c.brk||null,off:c.off||[],auto:c.auto!==false,wa:c.wa||"",lbl:c.lbl||{}}}
+function ens(t){return allSvc(t).filter(function(s){return t.svc[s.id]})}
 function hrs(t){var o=[];for(var h=t.open;h<t.close;h++)o.push(h);return o}
 function tdays(t,hoy){var o=[],d=new Date();d.setHours(12,0,0,0);if(hoy)d.setDate(d.getDate()-1);for(var i=0;i<28&&o.length<10;i++){d.setDate(d.getDate()+1);var k=key(d);if(t.days.indexOf(d.getDay())>-1&&!isOff(t,k))o.push(k)}return o}
 function isOff(t,k){return (t.off||[]).some(function(r){return k>=r.from&&k<=r.to})}
@@ -206,7 +208,7 @@ async function loadCli(){
   drawCli()}
 function drawCli(){
   var t=S.t,e=ens(t),d=S.svc?t.svc[S.svc]:0;
-  $("svc").innerHTML=e.length?e.map(function(s){return '<button class="chip" aria-pressed="'+(S.svc===s.id)+'" data-s="'+s.id+'">'+esc(s.n)+'<small>'+esc(s.d)+' · dura aprox. '+t.svc[s.id]+' h</small></button>'}).join(""):'<div class="empty">Este taller todavía no cargó sus servicios.</div>';
+  $("svc").innerHTML=e.length?e.map(function(s){return '<button class="chip" aria-pressed="'+(S.svc===s.id)+'" data-s="'+s.id+'">'+esc(s.n)+'<small>'+(s.d?esc(s.d)+' · ':'')+'dura aprox. '+t.svc[s.id]+' h</small></button>'}).join(""):'<div class="empty">Este taller todavía no cargó sus servicios.</div>';
   $("dnote").classList.toggle("hide",!!S.svc);
   $("days").innerHTML=S.svc?tdays(t).map(function(k){var n=freeHours(t,dayOf(S.busy,k),d).length;return '<button class="chip" '+(n?'':'disabled ')+'aria-pressed="'+(S.day===k)+'" data-d="'+k+'">'+esc(fmt(k,{weekday:"short",day:"numeric",month:"short"}))+'<small>'+(n?n+" horarios libres":"Completo")+'</small></button>'}).join(""):"";
   $("hnote").classList.toggle("hide",!!S.day);
@@ -244,7 +246,7 @@ async function findMine(){
 function drawMine(){
   var t=S.t;
   $("mine").innerHTML=MN.list.map(function(b){
-    var html='<div class="rw"><div><strong>'+esc(fmt(b.date))+', '+hh(b.hour)+'</strong><div class="who">'+esc(svcName(b.svc))+' · '+b.dur+' h</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sec sm" data-rs="'+esc(b.id)+'">Cambiar día u hora</button><button class="btn sec sm" data-cn="'+esc(b.id)+'">Cancelar</button></div></div>';
+    var html='<div class="rw"><div><strong>'+esc(fmt(b.date))+', '+hh(b.hour)+'</strong><div class="who">'+esc(svcName(b.svc,b))+' · '+b.dur+' h</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sec sm" data-rs="'+esc(b.id)+'">Cambiar día u hora</button><button class="btn sec sm" data-cn="'+esc(b.id)+'">Cancelar</button></div></div>';
     if(MN.rs===b.id){
       html+='<div class="card" style="margin:10px 0"><h2>Elegí el nuevo día y hora</h2><div class="chips">'+tdays(t).map(function(k){var n=freeHours(t,dayOf(S.busy,k),b.dur).length;return '<button class="chip" '+(n?'':'disabled ')+'aria-pressed="'+(MN.rday===k)+'" data-rd="'+k+'">'+esc(fmt(k,{weekday:"short",day:"numeric",month:"short"}))+'<small>'+(n?n+" horarios libres":"Completo")+'</small></button>'}).join("")+'</div>'+
       (MN.rday?'<div class="chips" style="margin-top:10px">'+freeHours(t,dayOf(S.busy,MN.rday),b.dur).map(function(h){return '<button class="chip" aria-pressed="'+(MN.rhour===h)+'" data-rh="'+h+'">'+hh(h)+'</button>'}).join("")+'</div>':'')+
@@ -283,7 +285,7 @@ function beep(){try{var c=window._ac;if(!c)return;c.resume();var o=c.createOscil
 document.addEventListener("click",function(){try{window._ac=window._ac||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}});
 function showNew(nu,cn){
   cn=cn||[];var n=$("nuevo");n.classList.remove("hide");
-  function ln(b){return "<div>"+esc(fmt(b.date,{weekday:"long",day:"numeric",month:"long"}))+", "+hh(b.hour)+" · "+esc(svcName(b.svc))+" · "+esc(b.name)+" · "+esc(b.car)+"</div>"}
+  function ln(b){return "<div>"+esc(fmt(b.date,{weekday:"long",day:"numeric",month:"long"}))+", "+hh(b.hour)+" · "+esc(svcName(b.svc,b))+" · "+esc(b.name)+" · "+esc(b.car)+"</div>"}
   n.innerHTML=(nu.length?"<h2>"+(nu.length===1?"Llegó un turno nuevo":"Llegaron "+nu.length+" turnos nuevos")+"</h2>"+nu.slice(0,3).map(ln).join("")+(nu.length>3?"<div class=\"who\">y "+(nu.length-3)+" más</div>":""):"")+(cn.length?"<h2"+(nu.length?" style=\"margin-top:12px\"":"")+">"+(cn.length===1?"Un cliente canceló o cambió un turno":cn.length+" turnos cancelados o cambiados por clientes")+"</h2>"+cn.slice(0,3).map(ln).join(""):"")+"<button class=\"btn sec sm\" id=\"nuok\" style=\"margin-top:10px\">Entendido</button>";
   $("nuok").onclick=function(){n.classList.add("hide");document.title="TurnoTaller"};
   document.title="(Novedades) TurnoTaller";beep()}
@@ -298,10 +300,10 @@ function mailText(t,k){
   var l=dayOf(S.turnos,k).filter(act);
   var h="Asunto: Turnos de mañana, "+fmt(k)+" ("+l.length+(l.length===1?" trabajo":" trabajos")+")\n\n";
   if(!l.length)return h+"No hay turnos cargados para ese día.";
-  return h+l.map(function(b){return hh(b.hour)+" a "+hh(b.hour+b.dur)+"  "+svcName(b.svc)+"\n       "+b.name+" · "+b.tel+"\n       "+b.car+(b.note?"\n       Nota: "+b.note:"")}).join("\n\n")}
+  return h+l.map(function(b){return hh(b.hour)+" a "+hh(b.hour+b.dur)+"  "+svcName(b.svc,b)+"\n       "+b.name+" · "+b.tel+"\n       "+b.car+(b.note?"\n       Nota: "+b.note:"")}).join("\n\n")}
 function waNum(tel){var d=String(tel||"").replace(/\D/g,"");if(d.indexOf("54")===0&&d.length>=12){if(d.indexOf("549")!==0)d="549"+d.slice(2);return d.length===13?d:null}d=d.replace(/^0+/,"");if(d.length===12){for(var i=2;i<=4;i++)if(d.substr(i,2)==="15"){d=d.slice(0,i)+d.slice(i+2);break}}return d.length===10?"549"+d:null}
 function wa(b){var n=waNum(b.tel);if(!n)return '<div class="who">Sin código de área en el teléfono: no se puede abrir WhatsApp.</div>';var nm=b.name.split(" ")[0],f=fmt(b.date,{weekday:"long",day:"numeric",month:"long"});
-  var t1="Hola "+nm+", te confirmamos tu turno en "+S.me.name+" el "+f+" a las "+hh(b.hour)+" para "+svcName(b.svc).toLowerCase()+". ¡Te esperamos!",t2="Hola "+nm+", tu "+b.car+" ya está listo para retirar en "+S.me.name+".";
+  var t1="Hola "+nm+", te confirmamos tu turno en "+S.me.name+" el "+f+" a las "+hh(b.hour)+" para "+svcName(b.svc,b).toLowerCase()+". ¡Te esperamos!",t2="Hola "+nm+", tu "+b.car+" ya está listo para retirar en "+S.me.name+".";
   return '<div style="margin-top:6px;display:flex;gap:14px;flex-wrap:wrap"><a class="x" style="color:var(--ok)" target="_blank" rel="noopener" href="https://wa.me/'+n+'?text='+encodeURIComponent(t1)+'">WhatsApp: confirmar turno</a><a class="x" style="color:var(--ok)" target="_blank" rel="noopener" href="https://wa.me/'+n+'?text='+encodeURIComponent(t2)+'">WhatsApp: está listo</a></div>'}
 function drawTur(){
   var t=mk(S.me),ds=tdays(t,true),dm=tdays(t)[0]||ds[0];
@@ -310,7 +312,7 @@ function drawTur(){
   $("pdays").innerHTML=ds.map(function(k){return '<button class="chip" aria-pressed="'+(S.pday===k)+'" data-d="'+k+'">'+esc(fmt(k,{weekday:"short",day:"numeric",month:"short"}))+'<small>'+dayOf(S.turnos,k).filter(act).length+' turnos</small></button>'}).join("");
   var l=dayOf(S.turnos,S.pday);
   $("ptitle").textContent="Turnos del "+fmt(S.pday);
-  $("plist").innerHTML=l.length?l.map(function(b){var c=b.estado==="cancelado";return '<div class="t"'+(c?' style="opacity:.55"':'')+'><div class="hr">'+hh(b.hour)+'</div><div><span class="tag">'+esc(svcName(b.svc))+'</span> <span class="who">'+b.dur+' h</span> '+estSel(b)+'<div>'+esc(b.name)+' · '+esc(b.tel)+'</div><div class="who">'+esc(b.car)+(b.plate?' · '+esc(b.plate):'')+(b.note?' · '+esc(b.note):'')+'</div>'+(c?'':wa(b))+(b.plate?'<button class="x" data-hist="'+esc(b.plate)+'">Ver historial de la patente</button>':'')+'</div>'+(c?'<span></span>':'<button class="x" data-x="'+esc(b.id)+'">Cancelar</button>')+'</div>'}).join(""):'<div class="empty">Sin turnos para este día.</div>';
+  $("plist").innerHTML=l.length?l.map(function(b){var c=b.estado==="cancelado";return '<div class="t"'+(c?' style="opacity:.55"':'')+'><div class="hr">'+hh(b.hour)+'</div><div><span class="tag">'+esc(svcName(b.svc,b))+'</span> <span class="who">'+b.dur+' h</span> '+estSel(b)+'<div>'+esc(b.name)+' · '+esc(b.tel)+'</div><div class="who">'+esc(b.car)+(b.plate?' · '+esc(b.plate):'')+(b.note?' · '+esc(b.note):'')+'</div>'+(c?'':wa(b))+(b.plate?'<button class="x" data-hist="'+esc(b.plate)+'">Ver historial de la patente</button>':'')+'</div>'+(c?'<span></span>':'<button class="x" data-x="'+esc(b.id)+'">Cancelar</button>')+'</div>'}).join(""):'<div class="empty">Sin turnos para este día.</div>';
   $("mail").textContent=mailText(t,dm);
   $("mailsub").textContent="Turnos del "+fmt(dm)+". Cuando tengamos dominio propio, este resumen te va a llegar solo por mail todos los días a las 20:00."}
 $("pdays").onclick=function(e){var b=e.target.closest("[data-d]");if(!b)return;S.pday=b.dataset.d;drawTur()};
@@ -323,7 +325,7 @@ $("plist").onchange=async function(e){var s2=e.target.closest("[data-st]");if(!s
 async function histSearch(){var p=$("hq").value.toUpperCase().replace(/[^A-Z0-9]/g,"");if(p.length<5){$("hres").innerHTML='<div class="empty">Escribí la patente completa.</div>';return}
   var r=await sb.from("turnos").select("*").eq("plate",p).order("date",{ascending:false}).order("hour",{ascending:false}).limit(50);
   if(r.error){$("hres").innerHTML='<div class="empty">No se pudo buscar.</div>';return}
-  var l=r.data||[];$("hres").innerHTML=l.length?l.map(function(b){return '<div class="rw"><div><strong>'+esc(fmt(b.date,{day:"numeric",month:"long",year:"numeric"}))+', '+hh(b.hour)+'</strong><div class="who">'+esc(svcName(b.svc))+' · '+esc(b.name)+' · '+esc(b.car)+(b.note?' · '+esc(b.note):'')+'</div></div><span class="tag">'+esc(EST[b.estado]||b.estado)+'</span></div>'}).join(""):'<div class="empty">No hay turnos registrados para esa patente.</div>'}
+  var l=r.data||[];$("hres").innerHTML=l.length?l.map(function(b){return '<div class="rw"><div><strong>'+esc(fmt(b.date,{day:"numeric",month:"long",year:"numeric"}))+', '+hh(b.hour)+'</strong><div class="who">'+esc(svcName(b.svc,b))+' · '+esc(b.name)+' · '+esc(b.car)+(b.note?' · '+esc(b.note):'')+'</div></div><span class="tag">'+esc(EST[b.estado]||b.estado)+'</span></div>'}).join(""):'<div class="empty">No hay turnos registrados para esa patente.</div>'}
 $("hgo").onclick=histSearch;$("hq").addEventListener("keydown",function(e){if(e.key==="Enter")histSearch()});
 $("copy").onclick=function(){var x=$("mail").textContent;try{navigator.clipboard.writeText(x).then(function(){$("cok").textContent="Copiado"},function(){$("cok").textContent="No se pudo copiar"})}catch(e){$("cok").textContent="No se pudo copiar"}};
 function link(slug){return location.origin+location.pathname+"?t="+slug}
@@ -338,9 +340,15 @@ function drawCfg(){
   var t=mk(S.me);$("mylink").textContent=link(S.me.slug);$("qr").innerHTML=typeof qrcode==="undefined"?"":qrSvg(link(S.me.slug));
   $("tcfg").innerHTML=
   '<div class="card"><h2>Datos del taller</h2><label for="cn">Nombre</label><input id="cn" maxlength="100" value="'+esc(S.me.name)+'"></div>'+
-  '<div class="card"><h2>Trabajos que hacemos</h2>'+SVC.map(function(s){var on=!!t.svc[s.id];return '<div class="rw"><label class="ck"><input type="checkbox" data-sv="'+s.id+'"'+(on?' checked':'')+'> '+esc(s.n)+'</label><span class="who">Dura aprox.</span><select data-du="'+s.id+'" aria-label="Duración de '+esc(s.n)+'"'+(on?'':' disabled')+'>'+opts(1,4,t.svc[s.id],function(n){return n+" h"})+'</select></div>'}).join("")+'</div>'+
+  '<div class="card"><h2>Trabajos que hacemos</h2>'+SVC.map(function(s){var on=!!t.svc[s.id];return '<div class="rw"><label class="ck"><input type="checkbox" data-sv="'+s.id+'"'+(on?' checked':'')+'> '+esc(s.n)+'</label><span class="who">Dura aprox.</span><select data-du="'+s.id+'" aria-label="Duración de '+esc(s.n)+'"'+(on?'':' disabled')+'>'+opts(1,4,t.svc[s.id],function(n){return n+" h"})+'</select></div>'}).join("")+cfgCustom(t)+'</div>'+
   '<div class="card"><h2>Días de atención</h2><div class="dys">'+[1,2,3,4,5,6,0].map(function(n){return '<label class="ck"><input type="checkbox" data-dy="'+n+'"'+(t.days.indexOf(n)>-1?' checked':'')+'> '+DIAS[n]+'</label>'}).join("")+'</div>'+(t.days.length?'':'<div class="empty">Sin días marcados, los clientes no van a ver horarios.</div>')+'</div>'+
   '<div class="card"><h2>Horario y capacidad</h2><div class="chips"><div><label for="op">Abrimos</label><select id="op" data-op="1">'+opts(6,20,t.open,hh)+'</select></div><div><label for="cl">Cerramos</label><select id="cl" data-cl="1">'+opts(7,22,t.close,hh)+'</select></div><div><label for="cp">Autos al mismo tiempo</label><select id="cp" data-cp="1">'+opts(1,5,t.cap,String)+'</select></div></div></div>'+cfgExtra(t)}
+function cfgCustom(t){
+  var l=t.lbl||{},ids=Object.keys(l);
+  return '<div style="margin-top:18px;padding-top:12px;border-top:2px solid var(--line)"><strong>Tus propios trabajos</strong><p class="who" style="margin:2px 0 8px">Agregá los trabajos que hace tu taller con el nombre, la descripción y la duración que quieras. Tus clientes los ven tal cual.</p>'+
+  (ids.length?ids.map(function(id){return '<div class="rw"><div style="flex:1;min-width:200px"><strong>'+esc(l[id].n)+'</strong>'+(l[id].d?'<div class="who">'+esc(l[id].d)+'</div>':'')+'</div><span class="who">Dura aprox.</span><select data-du="'+esc(id)+'" aria-label="Duración de '+esc(l[id].n)+'">'+opts(1,8,t.svc[id]||1,function(n){return n+" h"})+'</select><button class="x" data-rmsv="'+esc(id)+'">Quitar</button></div>'}).join(""):'<div class="empty">Todavía no agregaste trabajos propios.</div>')+
+  '<div class="chips" style="margin-top:12px;align-items:flex-end"><div style="flex:1;min-width:200px"><label for="ns" class="who" style="margin:0">Nombre del trabajo</label><input id="ns" maxlength="60" placeholder="Ej: Cambio de embrague"></div><div style="flex:2;min-width:220px"><label for="nd" class="who" style="margin:0">Descripción (opcional)</label><input id="nd" maxlength="120" placeholder="Ej: Incluye kit y mano de obra"></div><div><label for="nh" class="who" style="margin:0">Dura aprox.</label><select id="nh">'+opts(1,8,1,function(n){return n+" h"})+'</select></div></div>'+
+  '<button class="btn sec sm" style="margin-top:10px" data-addsv="1">Agregar trabajo</button></div>'}
 function cfgExtra(t){
   var b=t.brk,off=t.off||[];
   return '<div class="card"><h2>Confirmación y contacto</h2><label class="ck"><input type="checkbox" data-au="1"'+(t.auto?' checked':'')+'> Confirmar los turnos automáticamente</label><p class="who" style="margin:4px 0 12px 28px">Si lo desmarcás, los turnos nuevos quedan como pendientes hasta que los confirmes vos.</p><label for="cw">WhatsApp del taller (lo ven tus clientes)</label><input id="cw" type="tel" maxlength="30" placeholder="Ej: 223 555-1234" value="'+esc(t.wa)+'"><p class="who" style="margin-top:6px">Con este número, después de reservar le aparece al cliente un botón para avisarte por WhatsApp.</p></div>'+
@@ -364,24 +372,34 @@ $("tcfg").addEventListener("change",async function(e){
   else return;
   drawCfg();await saveCfg({config:c})});
 $("tcfg").addEventListener("click",async function(e){
-  var b=e.target.closest("[data-addoff],[data-rm]");if(!b)return;var c=S.me.config;c.off=c.off||[];
+  var b=e.target.closest("[data-addoff],[data-rm],[data-addsv],[data-rmsv]");if(!b)return;var c=S.me.config;
+  if(b.dataset.addsv){var nn=$("ns").value.trim(),nd=$("nd").value.trim(),nh=+$("nh").value;
+    if(!nn){$("cfgok").textContent="Escribí el nombre del trabajo.";return}
+    c.lbl=c.lbl||{};c.svc=c.svc||{};
+    if(Object.keys(c.lbl).length>=20){$("cfgok").textContent="Llegaste al máximo de 20 trabajos propios.";return}
+    var nid="c"+Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36);
+    c.lbl[nid]={n:nn.slice(0,60),d:nd.slice(0,120)};c.svc[nid]=nh;drawCfg();await saveCfg({config:c});return}
+  if(b.dataset.rmsv){if(!confirm("¿Quitar este trabajo? Los turnos que ya se tomaron se conservan."))return;
+    if(c.lbl)delete c.lbl[b.dataset.rmsv];if(c.svc)delete c.svc[b.dataset.rmsv];drawCfg();await saveCfg({config:c});return}
+  c.off=c.off||[];
   if(b.dataset.addoff){var f=$("of1").value,t2=$("of2").value||f;if(!f||t2<f){$("cfgok").textContent="Elegí una fecha válida.";return}if(c.off.length>=50){$("cfgok").textContent="Llegaste al máximo de períodos cargados.";return}c.off.push({from:f,to:t2});c.off.sort(function(a,b){return a.from<b.from?-1:1})}
   else c.off.splice(+b.dataset.rm,1);
   drawCfg();await saveCfg({config:c})});
 $("printqr").onclick=printPoster;
 var nameT;$("tcfg").addEventListener("input",function(e){if(e.target.id==="cw"){S.me.config.wa=e.target.value.trim();clearTimeout(nameT);nameT=setTimeout(function(){saveCfg({config:S.me.config})},700);return}if(e.target.id!=="cn")return;S.me.name=e.target.value.trim()||"Taller sin nombre";$("ttl").textContent=S.me.name;clearTimeout(nameT);nameT=setTimeout(function(){saveCfg({name:S.me.name})},700)});
-function agList(){var f=$("agf").value,n=+$("agr").value,d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+n);var end=key(d),today=key(new Date());return S.turnos.filter(function(b){return act(b)&&b.date>=today&&b.date<=end&&(!f||b.svc===f)})}
+function agList(){var f=$("agf").value,n=+$("agr").value,d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+n);var end=key(d),today=key(new Date());return S.turnos.filter(function(b){return act(b)&&b.date>=today&&b.date<=end&&(!f||svcName(b.svc,b)===f)})}
 function agGroups(l){var g={};l.forEach(function(b){(g[b.date]=g[b.date]||[]).push(b)});return g}
 function drawAgd(){
-  var l=agList(),by={};l.forEach(function(b){by[b.svc]=(by[b.svc]||0)+1});
-  $("agsum").innerHTML=l.length?'<div class="who" style="margin-bottom:6px">'+l.length+(l.length===1?' turno':' turnos')+' en el período</div>'+Object.keys(by).map(function(k){return '<span class="tag" style="margin:0 6px 6px 0">'+esc(svcName(k))+': '+by[k]+'</span>'}).join(""):'<div class="empty">No hay turnos en este período.</div>';
+  var cur=$("agf").value,names={};S.turnos.forEach(function(b){if(act(b))names[svcName(b.svc,b)]=1});
+  $("agf").innerHTML='<option value="">Todos los trabajos</option>'+Object.keys(names).sort().map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>'}).join("");$("agf").value=cur;
+  var l=agList(),by={};l.forEach(function(b){var nn=svcName(b.svc,b);by[nn]=(by[nn]||0)+1});
+  $("agsum").innerHTML=l.length?'<div class="who" style="margin-bottom:6px">'+l.length+(l.length===1?' turno':' turnos')+' en el período</div>'+Object.keys(by).map(function(k){return '<span class="tag" style="margin:0 6px 6px 0">'+esc(k)+': '+by[k]+'</span>'}).join(""):'<div class="empty">No hay turnos en este período.</div>';
   var g=agGroups(l);
-  $("aglist").innerHTML=Object.keys(g).sort().map(function(k){return '<div class="hr" style="font-size:20px;margin-top:14px">'+esc(fmt(k))+' <span class="who">('+g[k].length+')</span></div>'+g[k].map(function(b){return '<div class="rw"><div><strong>'+hh(b.hour)+'</strong> · <span class="tag">'+esc(svcName(b.svc))+'</span><div>'+esc(b.car)+(b.plate?' · '+esc(b.plate):'')+' · '+esc(b.name)+'</div>'+(b.note?'<div class="who">Nota: '+esc(b.note)+'</div>':'')+'</div><span class="who">'+esc(EST[b.estado]||b.estado)+'</span></div>'}).join("")}).join("")}
-function agText(){var l=agList(),g=agGroups(l),by={};l.forEach(function(b){by[b.svc]=(by[b.svc]||0)+1});
+  $("aglist").innerHTML=Object.keys(g).sort().map(function(k){return '<div class="hr" style="font-size:20px;margin-top:14px">'+esc(fmt(k))+' <span class="who">('+g[k].length+')</span></div>'+g[k].map(function(b){return '<div class="rw"><div><strong>'+hh(b.hour)+'</strong> · <span class="tag">'+esc(svcName(b.svc,b))+'</span><div>'+esc(b.car)+(b.plate?' · '+esc(b.plate):'')+' · '+esc(b.name)+'</div>'+(b.note?'<div class="who">Nota: '+esc(b.note)+'</div>':'')+'</div><span class="who">'+esc(EST[b.estado]||b.estado)+'</span></div>'}).join("")}).join("")}
+function agText(){var l=agList(),g=agGroups(l),by={};l.forEach(function(b){var nn=svcName(b.svc,b);by[nn]=(by[nn]||0)+1});
   var o=["Agenda de "+S.me.name,""];
-  Object.keys(g).sort().forEach(function(k){o.push(fmt(k));g[k].forEach(function(b){o.push("  "+hh(b.hour)+" "+svcName(b.svc)+" - "+b.car+(b.plate?" "+b.plate:"")+" - "+b.name+(b.note?" - Nota: "+b.note:""))});o.push("")});
-  o.push("Resumen: "+(Object.keys(by).map(function(k){return svcName(k)+" "+by[k]}).join(", ")||"sin turnos"));return o.join("\n")}
-$("agf").innerHTML='<option value="">Todos los trabajos</option>'+SVC.map(function(s){return '<option value="'+s.id+'">'+esc(s.n)+'</option>'}).join("");
+  Object.keys(g).sort().forEach(function(k){o.push(fmt(k));g[k].forEach(function(b){o.push("  "+hh(b.hour)+" "+svcName(b.svc,b)+" - "+b.car+(b.plate?" "+b.plate:"")+" - "+b.name+(b.note?" - Nota: "+b.note:""))});o.push("")});
+  o.push("Resumen: "+(Object.keys(by).map(function(k){return k+" "+by[k]}).join(", ")||"sin turnos"));return o.join("\n")}
 $("agf").onchange=drawAgd;$("agr").onchange=drawAgd;
 $("bkgo").onclick=async function(){
   var f=$("bk1").value,t2=$("bk2").value,r=$("bkres");
