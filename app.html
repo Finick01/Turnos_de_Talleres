@@ -97,7 +97,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px d
   </section>
 
   <section id="pick" class="hide">
-    <div class="card"><h2>Elegí el taller</h2><p class="sub" style="margin-top:0">Estos son los talleres que hoy están tomando turnos.</p>
+    <div class="card"><h2>Elegí el taller</h2><p class="sub" style="margin-top:0">Estos son los talleres habilitados. Los que ya cargaron sus servicios te dejan sacar turno.</p>
       <div id="tlist"></div><div class="empty" id="pnote"></div><button class="btn sec" id="pback">Volver</button></div>
   </section>
 
@@ -476,8 +476,8 @@ async function showLogin(){
 async function showPick(){show("pick");head("TurnoTaller","Elegí el taller donde querés sacar tu turno.");msg("");$("tlist").innerHTML="";$("pnote").textContent="Cargando talleres...";
   var r=await sb.rpc("list_talleres");
   if(r.error){$("pnote").textContent="No se pudieron cargar los talleres. Probá de nuevo.";return}
-  var l=r.data||[];$("pnote").textContent=l.length?"":"Por ahora no hay talleres tomando turnos.";
-  $("tlist").innerHTML=l.map(function(t){return '<a class="rw" style="text-decoration:none;color:var(--ink)" href="'+esc(location.pathname)+'?t='+encodeURIComponent(t.slug)+'"><strong>'+esc(t.name)+'</strong><span class="btn sec sm" style="margin:0">Sacar turno</span></a>'}).join("")}
+  var l=r.data||[];$("pnote").textContent=l.length?"":"Por ahora no hay talleres disponibles.";
+  $("tlist").innerHTML=l.map(function(t){return t.ready?'<a class="rw" style="text-decoration:none;color:var(--ink)" href="'+esc(location.pathname)+'?t='+encodeURIComponent(t.slug)+'"><strong>'+esc(t.name)+'</strong><span class="btn sec sm" style="margin:0">Sacar turno</span></a>':'<div class="rw" style="opacity:.6"><div><strong>'+esc(t.name)+'</strong><div class="who">Todavía no cargó sus servicios, no toma turnos por ahora.</div></div></div>'}).join("")}
 $("gopick").onclick=showPick;$("pback").onclick=showLogin;
 $("lgo").onclick=async function(){
   var e=$("le").value.trim(),p=$("lp").value;if(!e||!p){msg("Ingresá tu mail y tu contraseña.",1);return}
